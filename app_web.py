@@ -1,9 +1,15 @@
 import streamlit as st
 import json
+import os
 from pathlib import Path
-from core_engine import query_llm
+import google.generativeai as genai
 
 st.set_page_config(page_title="Turing Hotel · Studio Web", layout="wide")
+
+# Configurazione API Key Gemini
+gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+if gemini_key:
+    genai.configure(api_key=gemini_key)
 
 DATA_FILE = Path("data_web/romanzo_web.json")
 DATA_FILE.parent.mkdir(exist_ok=True)
@@ -37,6 +43,19 @@ if "state" not in st.session_state:
 
 def save_state():
     DATA_FILE.write_text(json.dumps(st.session_state.state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def query_gemini(instructions, prompt_data, model_name="gemini-1.5-flash"):
+    if not gemini_key:
+        return "Errore: GEMINI_API_KEY non trovata nei Secrets di Streamlit."
+    try:
+        model = genai.GenerativeModel(
+            model_name=model_name,
+            system_instruction=instructions
+        )
+        response = model.generate_content(json.dumps(prompt_data, ensure_ascii=False))
+        return response.text
+    except Exception as e:
+        return f"Errore durante la generazione Gemini: {str(e)}"
 
 state = st.session_state.state
 scene_idx = state.get("selected", 0)
@@ -72,8 +91,7 @@ if col_btn2.button("+ Scena Adam"):
     st.rerun()
 
 st.sidebar.markdown("---")
-provider_choice = st.sidebar.selectbox("Provider AI", ["gemini", "openai", "lmstudio"])
-model_name = st.sidebar.text_input("Modello", value="gemini-2.5-flash" if provider_choice == "gemini" else "gpt-4o")
+model_choice = st.sidebar.selectbox("Modello Gemini", ["gemini-1.5-flash", "gemini-1.5-pro"])
 
 st.title(f"Studio Scena: {curr_scene['title']}")
 
@@ -89,23 +107,23 @@ with tab_dialogue:
     for m in curr_scene["messages"]:
         with st.chat_message("assistant" if m["speaker"] in ["Noa", "Adam"] else "user"):
             st.write(f"**{m['speaker']}**: {m['text']}")
-
+    
     speaker = st.selectbox("Chi parla", ["Luigi", "Vittoria", "Riccardo", "Altro interlocutore"])
     user_text = st.chat_input("Scrivi messaggio o azione...")
-
+    
     if user_text:
         curr_scene["messages"].append({"speaker": speaker, "text": user_text, "visible": True})
         save_state()
-
+        
         instructions = f"Interpreta soltanto {curr_scene['agent']}. Profilo: {state['profiles'][curr_scene['agent']]}. Mondo: {state['world']}"
         prompt_data = {
             "luogo": curr_scene["place"],
             "percezioni": curr_scene["vision"],
             "dialogo": curr_scene["messages"]
         }
-
+        
         with st.spinner(f"{curr_scene['agent']} sta rispondendo..."):
-            reply = query_llm(provider_choice, model_name, instructions, prompt_data)
+            reply = query_gemini(instructions, prompt_data, model_choice)
             curr_scene["messages"].append({"speaker": curr_scene["agent"], "text": reply, "visible": True})
             save_state()
             st.rerun()
@@ -117,7 +135,7 @@ with tab_memory:
         instructions = f"Prepara in italiano una proposta di memoria aggiornata per {curr_scene['agent']}."
         prompt_data = {"dialogo": curr_scene["messages"], "memoria_precedente": curr_scene["memory"]}
         with st.spinner("Generazione memoria in corso..."):
-            curr_scene["proposal"] = query_llm(provider_choice, model_name, instructions, prompt_data)
+            curr_scene["proposal"] = query_gemini(instructions, prompt_data, model_choice)
             save_state()
     curr_scene["proposal"] = st.text_area("Proposta Memoria (da confermare)", curr_scene["proposal"], height=150)
 
@@ -131,7 +149,7 @@ with tab_prose:
             "memoria": curr_scene["memory"]
         }
         with st.spinner("Generazione prosa..."):
-            curr_scene["prose"] = query_llm(provider_choice, model_name, instructions, prompt_data)
+            curr_scene["prose"] = query_gemini(instructions, prompt_data, model_choice)
             save_state()
     curr_scene["prose"] = st.text_area("Testo Prosa", curr_scene["prose"], height=300)
 
