@@ -4,7 +4,93 @@ import os
 from pathlib import Path
 import google.generativeai as genai
 
-st.set_page_config(page_title="Turing Hotel · Studio Web", layout="wide")
+# Configurazione pagina
+st.set_page_config(
+    page_title="Turing Hotel · Studio Web",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# --- STILE CSS PERSONALIZZATO PER COLORI E INTERFACCIA ---
+st.markdown("""
+<style>
+    /* Sfondo generale e font */
+    .stApp {
+        background-color: #0f172a;
+        color: #f8fafc;
+    }
+
+    /* Personalizzazione Sidebar (Area Controlli) */
+    [data-testid="stSidebar"] {
+        background-color: #1e293b !important;
+        border-right: 1px solid #334155;
+    }
+
+    /* Intestazione Titolo Scena */
+    .stTitle {
+        color: #38bdf8 !important;
+        font-family: 'Georgia', serif;
+    }
+
+    /* Spazio Dialogo / Chat Container */
+    [data-testid="stChatMessage"] {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    /* Area Input Messaggio / Chat Input */
+    .stChatInputContainer {
+        border-color: #38bdf8 !important;
+        background-color: #0f172a !important;
+    }
+
+    /* Stile per i Tabs (Schede) */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: #1e293b;
+        padding: 6px;
+        border-radius: 8px;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        height: 45px;
+        background-color: transparent;
+        border-radius: 6px;
+        color: #94a3b8;
+        font-weight: 600;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+    }
+
+    /* Caselle di testo e Text Area */
+    .stTextArea textarea, .stTextInput input {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        border: 1px solid #475569 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Pulsanti di Azione */
+    .stButton>button {
+        background-color: #0284c7;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+    .stButton>button:hover {
+        background-color: #0369a1;
+        border-color: #38bdf8;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Configurazione API Key Gemini
 gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
@@ -61,7 +147,8 @@ state = st.session_state.state
 scene_idx = state.get("selected", 0)
 curr_scene = state["scenes"][scene_idx]
 
-st.sidebar.title("🏨 Turing Hotel Web")
+# --- SIDEBAR (CONTROLLI E SCENE) ---
+st.sidebar.title("🏨 Turing Hotel")
 scene_titles = [f"{s['agent']} · {s['title']}" for s in state["scenes"]]
 selected_num = st.sidebar.selectbox("Scegli Scena", range(len(scene_titles)), index=scene_idx)
 
@@ -93,6 +180,7 @@ if col_btn2.button("+ Scena Adam"):
 st.sidebar.markdown("---")
 model_choice = st.sidebar.selectbox("Modello Gemini", ["gemini-1.5-flash", "gemini-1.5-pro"])
 
+# --- AREA PRINCIPALE DI LAVORO ---
 st.title(f"Studio Scena: {curr_scene['title']}")
 
 col1, col2, col3 = st.columns([2, 1, 1])
@@ -100,16 +188,20 @@ curr_scene["title"] = col1.text_input("Titolo Scena", curr_scene["title"])
 curr_scene["place"] = col2.text_input("Luogo", curr_scene["place"])
 curr_scene["moment"] = col3.text_input("Momento", curr_scene["moment"])
 
-tab_dialogue, tab_memory, tab_prose = st.tabs(["💬 Dialogo & Scena", "🧠 Memoria Personaggio", "📖 Trasforma in Prosa"])
+tab_dialogue, tab_memory, tab_prose = st.tabs(["💬 Spazio Dialogo & Scena", "🧠 Memoria Personaggio", "📖 Trasforma in Prosa"])
 
+# TAB 1: AREA DI DIALOGO E DRAFTING
 with tab_dialogue:
-    curr_scene["vision"] = st.text_area("Cosa vede e sente il personaggio", curr_scene["vision"], height=80)
-    for m in curr_scene["messages"]:
-        with st.chat_message("assistant" if m["speaker"] in ["Noa", "Adam"] else "user"):
-            st.write(f"**{m['speaker']}**: {m['text']}")
+    curr_scene["vision"] = st.text_area("Percezioni (cosa vede e sente il personaggio)", curr_scene["vision"], height=80)
     
-    speaker = st.selectbox("Chi parla", ["Luigi", "Vittoria", "Riccardo", "Altro interlocutore"])
-    user_text = st.chat_input("Scrivi messaggio o azione...")
+    st.markdown("### 💬 Flusso della Scena")
+    for m in curr_scene["messages"]:
+        role_icon = "🤖" if m["speaker"] in ["Noa", "Adam"] else "👤"
+        with st.chat_message("assistant" if m["speaker"] in ["Noa", "Adam"] else "user"):
+            st.write(f"**{role_icon} {m['speaker']}**: {m['text']}")
+    
+    speaker = st.selectbox("Chi parla nell'interazione", ["Luigi", "Vittoria", "Riccardo", "Altro interlocutore"])
+    user_text = st.chat_input("Scrivi un dialogo o un'azione per far reagire l'AI...")
     
     if user_text:
         curr_scene["messages"].append({"speaker": speaker, "text": user_text, "visible": True})
@@ -128,6 +220,7 @@ with tab_dialogue:
             save_state()
             st.rerun()
 
+# TAB 2: MEMORIA PERSONAGGIO
 with tab_memory:
     st.subheader("Memoria e Stato Mentale")
     curr_scene["memory"] = st.text_area("Memoria Disponibile", curr_scene["memory"], height=150)
@@ -139,6 +232,7 @@ with tab_memory:
             save_state()
     curr_scene["proposal"] = st.text_area("Proposta Memoria (da confermare)", curr_scene["proposal"], height=150)
 
+# TAB 3: PROSA
 with tab_prose:
     st.subheader("Bozza di Prosa")
     if st.button("Genera Prosa"):
