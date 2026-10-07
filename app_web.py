@@ -26,11 +26,13 @@ st.set_page_config(
 BASE_DIR = Path(__file__).parent
 
 ASSETS_DIR = BASE_DIR / "assets"
+CHARACTERS_DIR = BASE_DIR / "characters"
 DATA_DIR = BASE_DIR / "data_web"
 
 DATA_FILE = DATA_DIR / "romanzo_web.json"
 
 ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+CHARACTERS_DIR.mkdir(parents=True, exist_ok=True)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 HOTEL_IMAGE = ASSETS_DIR / "TuringHotel.jpg"
@@ -52,11 +54,8 @@ except Exception:
 if not openai_key:
     openai_key = os.environ.get("OPENAI_API_KEY")
 
-client = (
-    OpenAI(api_key=openai_key)
-    if openai_key
-    else None
-)
+client = OpenAI(api_key=openai_key) if openai_key else None
+
 
 try:
     OPENAI_MODEL = st.secrets.get(
@@ -170,6 +169,13 @@ div.stButton > button:hover {
     margin-bottom: .7rem;
 }
 
+.source-box {
+    background: #111518;
+    border: 1px solid #2d3439;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -217,14 +223,6 @@ e farli stare bene.
 osservatrice,
 ironica
 e capace di seduzione.
-
-Non vuole necessariamente diventare umana.
-
-Sta cercando di capire
-quanto valore possano avere
-esperienze e sentimenti
-quando sai che potrebbero essere
-copiati, modificati o cancellati.
 """,
 
             "memory": ""
@@ -245,13 +243,6 @@ e ora lo gestisce insieme al padre.
 pratica,
 riservata
 e molto osservatrice.
-
-Conosce ogni rumore,
-corridoio e problema dell'albergo.
-
-Non è certa di aver scelto di restare.
-Forse ha soltanto rimandato
-per molti anni il momento di andarsene.
 """,
 
             "memory": ""
@@ -263,12 +254,10 @@ per molti anni il momento di andarsene.
         {
             "id": "hall",
             "title": "La Hall",
-
             "messages": {
                 "Noa": [],
                 "Ada": []
             },
-
             "diary": {
                 "Noa": "",
                 "Ada": ""
@@ -278,12 +267,23 @@ per molti anni il momento di andarsene.
         {
             "id": "funerale",
             "title": "Il Funerale",
-
             "messages": {
                 "Noa": [],
                 "Ada": []
             },
+            "diary": {
+                "Noa": "",
+                "Ada": ""
+            }
+        },
 
+        {
+            "id": "matrimonio",
+            "title": "Il Matrimonio",
+            "messages": {
+                "Noa": [],
+                "Ada": []
+            },
             "diary": {
                 "Noa": "",
                 "Ada": ""
@@ -293,12 +293,10 @@ per molti anni il momento di andarsene.
         {
             "id": "nascite",
             "title": "Il reparto nascite",
-
             "messages": {
                 "Noa": [],
                 "Ada": []
             },
-
             "diary": {
                 "Noa": "",
                 "Ada": ""
@@ -308,12 +306,14 @@ per molti anni il momento di andarsene.
         {
             "id": "ritorno",
             "title": "Il ritorno",
-
             "messages": {
                 "Noa": [],
                 "Ada": []
             },
-
+            "diary": {
+                "Noa": "",
+                "Ada": ""
+            },
             "decision": {
                 "Noa": "",
                 "Ada": ""
@@ -324,7 +324,7 @@ per molti anni il momento di andarsene.
 
 
 # ============================================================
-# FUNZIONI DI MIGRAZIONE
+# UTILITY
 # ============================================================
 
 def safe_list(value):
@@ -335,86 +335,300 @@ def safe_dict(value):
     return value if isinstance(value, dict) else {}
 
 
-def find_old_scene(old_scenes, new_id):
+def number_from_filename(filename):
 
-    if not isinstance(old_scenes, list):
+    numbers = re.findall(
+        r"\d+",
+        filename
+    )
+
+    if numbers:
+        return int(numbers[-1])
+
+    return 0
+
+
+def sorted_assets(paths):
+
+    return sorted(
+        paths,
+        key=lambda path: (
+            number_from_filename(path.name),
+            path.name.lower()
+        )
+    )
+
+
+# ============================================================
+# LETTURA FILE TESTO / PDF
+# ============================================================
+
+def read_reference_file(path):
+
+    suffix = path.suffix.lower()
+
+    if suffix in [".txt", ".md"]:
+
+        try:
+            return path.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+        except Exception:
+            return ""
+
+    if suffix == ".pdf":
+
+        try:
+            from pypdf import PdfReader
+
+            reader = PdfReader(str(path))
+
+            pages = []
+
+            for page in reader.pages:
+
+                text = page.extract_text()
+
+                if text:
+                    pages.append(text)
+
+            return "\n".join(pages)
+
+        except Exception:
+            return ""
+
+    return ""
+
+
+# ============================================================
+# DATI PERSONAGGI DA FILE
+# ============================================================
+
+def load_character_sources(character):
+
+    """
+    Noa legge:
+    - tutti i file noa*
+    - tutti i file shared*
+
+    Ada legge:
+    - tutti i file ada*
+    - tutti i file shared*
+    """
+
+    character_prefix = character.lower()
+
+    selected = []
+
+    if not CHARACTERS_DIR.exists():
+        return []
+
+    for path in CHARACTERS_DIR.iterdir():
+
+        if not path.is_file():
+            continue
+
+        if path.suffix.lower() not in [
+            ".txt",
+            ".md",
+            ".pdf"
+        ]:
+            continue
+
+        filename = path.name.lower()
+
+        if (
+            filename.startswith(character_prefix)
+            or filename.startswith("shared")
+        ):
+            selected.append(path)
+
+    selected = sorted(
+        selected,
+        key=lambda x: x.name.lower()
+    )
+
+    results = []
+
+    # limite di sicurezza
+    max_total_chars = 80000
+    used = 0
+
+    for path in selected:
+
+        text = read_reference_file(path)
+
+        if not text:
+            continue
+
+        remaining = max_total_chars - used
+
+        if remaining <= 0:
+            break
+
+        excerpt = text[:remaining]
+
+        results.append({
+            "file": path.name,
+            "contenuto": excerpt
+        })
+
+        used += len(excerpt)
+
+    return results
+
+
+# ============================================================
+# LIBRI AGENTE SCRITTORE
+# ============================================================
+
+def load_writer_books():
+
+    books = []
+
+    if not ASSETS_DIR.exists():
+        return books
+
+    for path in ASSETS_DIR.iterdir():
+
+        if not path.is_file():
+            continue
+
+        if not path.stem.lower().startswith(
+            "libriagenti"
+        ):
+            continue
+
+        if path.suffix.lower() not in [
+            ".txt",
+            ".md",
+            ".pdf"
+        ]:
+            continue
+
+        content = read_reference_file(path)
+
+        if content:
+
+            books.append(
+                (
+                    path.name,
+                    content
+                )
+            )
+
+    books = sorted(
+        books,
+        key=lambda item:
+        number_from_filename(
+            item[0]
+        )
+    )
+
+    max_total_chars = 30000
+
+    result = []
+    used = 0
+
+    for filename, content in books:
+
+        remaining = (
+            max_total_chars
+            - used
+        )
+
+        if remaining <= 0:
+            break
+
+        excerpt = content[
+            :remaining
+        ]
+
+        result.append({
+            "file": filename,
+            "testo": excerpt
+        })
+
+        used += len(excerpt)
+
+    return result
+
+
+# ============================================================
+# MIGRAZIONE STATO
+# ============================================================
+
+def find_old_scene(
+    old_scenes,
+    new_id
+):
+
+    if not isinstance(
+        old_scenes,
+        list
+    ):
         return None
+
+    for old_scene in old_scenes:
+
+        if not isinstance(
+            old_scene,
+            dict
+        ):
+            continue
+
+        if str(
+            old_scene.get("id", "")
+        ).lower() == new_id:
+
+            return old_scene
 
     keywords = {
 
         "hall": [
-            "hall",
-            "prima scena",
-            "prima scena web"
+            "hall"
         ],
 
         "funerale": [
-            "funerale",
-            "funeral"
+            "funerale"
+        ],
+
+        "matrimonio": [
+            "matrimonio"
         ],
 
         "nascite": [
             "nascite",
-            "reparto nascite",
-            "nascita"
+            "reparto nascite"
         ],
 
         "ritorno": [
-            "ritorno",
-            "return"
+            "ritorno"
         ]
     }
 
-    # prima cerca per ID
-
     for old_scene in old_scenes:
 
-        if not isinstance(old_scene, dict):
-            continue
-
-        old_id = str(
-            old_scene.get("id", "")
-        ).lower()
-
-        if old_id == new_id:
-            return old_scene
-
-    # poi per titolo
-
-    for old_scene in old_scenes:
-
-        if not isinstance(old_scene, dict):
+        if not isinstance(
+            old_scene,
+            dict
+        ):
             continue
 
         title = str(
-            old_scene.get("title", "")
+            old_scene.get(
+                "title",
+                ""
+            )
         ).lower()
 
-        for keyword in keywords[new_id]:
+        for keyword in keywords[
+            new_id
+        ]:
 
             if keyword in title:
                 return old_scene
-
-    # compatibilità con le vecchie scene numeriche
-
-    numeric_map = {
-        "hall": ["1", "01"],
-        "funerale": ["2", "02"],
-        "nascite": ["3", "03"],
-        "ritorno": ["4", "04"]
-    }
-
-    for old_scene in old_scenes:
-
-        if not isinstance(old_scene, dict):
-            continue
-
-        old_id = str(
-            old_scene.get("id", "")
-        )
-
-        if old_id in numeric_map[new_id]:
-            return old_scene
 
     return None
 
@@ -434,54 +648,41 @@ def migrate_messages(old_scene):
         []
     )
 
-    # Nuovo formato già corretto
-
-    if isinstance(messages, dict):
+    if isinstance(
+        messages,
+        dict
+    ):
 
         result["Noa"] = safe_list(
-            messages.get("Noa", [])
+            messages.get(
+                "Noa",
+                []
+            )
         )
 
         result["Ada"] = safe_list(
-            messages.get("Ada", [])
+            messages.get(
+                "Ada",
+                []
+            )
         )
 
         return result
 
-    # Vecchio formato = lista
-
-    if isinstance(messages, list):
+    if isinstance(
+        messages,
+        list
+    ):
 
         old_agent = old_scene.get(
             "agent",
-            ""
+            "Noa"
         )
 
         if old_agent == "Ada":
             result["Ada"] = messages
-
         else:
             result["Noa"] = messages
-
-    # ancora più vecchio
-
-    if "messages_noa" in old_scene:
-
-        result["Noa"] = safe_list(
-            old_scene.get(
-                "messages_noa",
-                []
-            )
-        )
-
-    if "messages_ada" in old_scene:
-
-        result["Ada"] = safe_list(
-            old_scene.get(
-                "messages_ada",
-                []
-            )
-        )
 
     return result
 
@@ -501,7 +702,10 @@ def migrate_diary(old_scene):
         {}
     )
 
-    if isinstance(diary, dict):
+    if isinstance(
+        diary,
+        dict
+    ):
 
         result["Noa"] = str(
             diary.get(
@@ -516,33 +720,6 @@ def migrate_diary(old_scene):
                 ""
             )
         )
-
-    # vecchia memoria scena
-
-    old_memory = old_scene.get(
-        "memory",
-        ""
-    )
-
-    old_agent = old_scene.get(
-        "agent",
-        ""
-    )
-
-    if (
-        isinstance(old_memory, str)
-        and old_memory.strip()
-    ):
-
-        if old_agent == "Ada":
-
-            if not result["Ada"]:
-                result["Ada"] = old_memory
-
-        else:
-
-            if not result["Noa"]:
-                result["Noa"] = old_memory
 
     return result
 
@@ -559,18 +736,16 @@ def migrate_state(old_state):
     ):
         return fresh
 
-    # mondo
-
     if isinstance(
-        old_state.get("world"),
+        old_state.get(
+            "world"
+        ),
         str
     ):
 
         fresh["world"] = old_state[
             "world"
         ]
-
-    # agenti
 
     old_agents = safe_dict(
         old_state.get(
@@ -591,35 +766,35 @@ def migrate_state(old_state):
             )
         )
 
-        if old_agent:
+        if isinstance(
+            old_agent.get(
+                "profile"
+            ),
+            str
+        ):
 
-            if isinstance(
-                old_agent.get("profile"),
-                str
-            ):
+            fresh[
+                "agents"
+            ][person][
+                "profile"
+            ] = old_agent[
+                "profile"
+            ]
 
-                fresh[
-                    "agents"
-                ][person][
-                    "profile"
-                ] = old_agent[
-                    "profile"
-                ]
+        if isinstance(
+            old_agent.get(
+                "memory"
+            ),
+            str
+        ):
 
-            if isinstance(
-                old_agent.get("memory"),
-                str
-            ):
-
-                fresh[
-                    "agents"
-                ][person][
-                    "memory"
-                ] = old_agent[
-                    "memory"
-                ]
-
-    # scene
+            fresh[
+                "agents"
+            ][person][
+                "memory"
+            ] = old_agent[
+                "memory"
+            ]
 
     old_scenes = old_state.get(
         "scenes",
@@ -644,19 +819,15 @@ def migrate_state(old_state):
             )
         )
 
-        if new_scene[
-            "id"
-        ] != "ritorno":
-
-            new_scene["diary"] = (
-                migrate_diary(
-                    old_scene
-                )
+        new_scene["diary"] = (
+            migrate_diary(
+                old_scene
             )
+        )
 
-        else:
+        if new_scene["id"] == "ritorno":
 
-            old_decision = safe_dict(
+            decision = safe_dict(
                 old_scene.get(
                     "decision",
                     {}
@@ -666,7 +837,7 @@ def migrate_state(old_state):
             new_scene[
                 "decision"
             ]["Noa"] = str(
-                old_decision.get(
+                decision.get(
                     "Noa",
                     ""
                 )
@@ -675,7 +846,7 @@ def migrate_state(old_state):
             new_scene[
                 "decision"
             ]["Ada"] = str(
-                old_decision.get(
+                decision.get(
                     "Ada",
                     ""
                 )
@@ -756,8 +927,6 @@ def save_state():
     )
 
 
-# salviamo subito il formato migrato
-
 save_state()
 
 
@@ -779,11 +948,8 @@ def query_openai(
     try:
 
         response = client.responses.create(
-
             model=OPENAI_MODEL,
-
             instructions=instructions,
-
             input=json.dumps(
                 data,
                 ensure_ascii=False
@@ -801,7 +967,401 @@ def query_openai(
 
 
 # ============================================================
-# ASSET HELPERS
+# RICORDI PRECEDENTI
+# ============================================================
+
+def get_previous_memories(
+    current_scene_id,
+    pov
+):
+
+    order = [
+        "hall",
+        "funerale",
+        "matrimonio",
+        "nascite",
+        "ritorno"
+    ]
+
+    memories = []
+
+    for scene_id in order:
+
+        if scene_id == current_scene_id:
+            break
+
+        scene = next(
+            (
+                s
+                for s in state["scenes"]
+                if s["id"] == scene_id
+            ),
+            None
+        )
+
+        if not scene:
+            continue
+
+        diary = safe_dict(
+            scene.get(
+                "diary",
+                {}
+            )
+        )
+
+        memory = diary.get(
+            pov,
+            ""
+        )
+
+        if memory:
+
+            memories.append({
+                "scena": scene["title"],
+                "ricordo": memory
+            })
+
+    return memories
+
+
+# ============================================================
+# PROMPT DEL PERSONAGGIO
+# ============================================================
+
+def character_prompt(
+    character,
+    scene
+):
+
+    agent = state[
+        "agents"
+    ][character]
+
+    character_sources = (
+        load_character_sources(
+            character
+        )
+    )
+
+    previous_memories = (
+        get_previous_memories(
+            scene["id"],
+            character
+        )
+    )
+
+    return f"""
+SEI {character}.
+
+SEI UN PERSONAGGIO DEL ROMANZO TURING HOTEL.
+NON SEI UN ASSISTENTE.
+
+==============================
+REGOLA FONDAMENTALE
+==============================
+
+DEVI SEMPRE LAVORARE SOLTANTO
+CON I DATI CHE POSSIEDI.
+
+I DATI A TUA DISPOSIZIONE SONO:
+
+1. I file narrativi del personaggio.
+2. I file condivisi.
+3. Il profilo del personaggio.
+4. I ricordi delle scene precedenti.
+5. La conversazione della scena corrente.
+6. Ciò che viene detto o mostrato nella scena.
+
+NON PUOI INVENTARE COME FATTO
+UN'INFORMAZIONE CHE NON COMPARE
+IN QUESTI DATI.
+
+Se non conosci qualcosa:
+
+- non inventarla;
+- puoi dire di non saperlo;
+- puoi avere un sospetto;
+- puoi fare un'ipotesi;
+- puoi ricordare male;
+- puoi fraintendere;
+- puoi chiedere;
+- puoi restare nel dubbio.
+
+È ammesso che IL PERSONAGGIO
+abbia una convinzione falsa.
+
+Ma non devi trasformare
+una tua invenzione in un fatto
+del mondo narrativo.
+
+==============================
+MONDO BASE
+==============================
+
+{state["world"]}
+
+==============================
+PROFILO BASE
+==============================
+
+{agent["profile"]}
+
+==============================
+MEMORIA GENERALE
+==============================
+
+{agent["memory"]}
+
+==============================
+REGOLE DI COMPORTAMENTO
+==============================
+
+Interpreta soltanto {character}.
+
+Non scrivere le battute
+degli altri personaggi.
+
+Non decidere cosa fanno
+gli altri personaggi.
+
+Non anticipare eventi futuri.
+
+Non spiegare la teoria.
+
+Non commentare il funzionamento
+dell'intelligenza artificiale.
+
+Non comportarti come
+un assistente ChatGPT.
+
+Non dire:
+"come posso aiutarti?",
+"a disposizione",
+"capisco la tua richiesta",
+o formule simili.
+
+Vivi la scena.
+
+Puoi:
+
+- parlare;
+- agire;
+- osservare;
+- mentire;
+- sbagliare;
+- dubitare;
+- avere paura;
+- desiderare;
+- essere contraddittoria;
+- cambiare idea;
+- tacere;
+- rifiutarti di rispondere.
+
+Le tue risposte devono essere
+coerenti con i dati del personaggio
+e con ciò che hai vissuto.
+
+Non cercare di rendere
+la storia più interessante
+inventando eventi.
+
+Non cercare di compiacere l'autore.
+
+Scrivi in italiano naturale,
+contemporaneo e credibile.
+
+==============================
+FILE DEL PERSONAGGIO
+==============================
+
+I file completi vengono forniti
+nel campo DATI_PERSONAGGIO
+del messaggio successivo.
+
+==============================
+RICORDI PRECEDENTI
+==============================
+
+I ricordi vengono forniti
+nel campo RICORDI_PRECEDENTI
+del messaggio successivo.
+"""
+
+
+# ============================================================
+# CREA RISPOSTA DEL PERSONAGGIO
+# ============================================================
+
+def answer_as_character(
+    character,
+    scene
+):
+
+    character_sources = (
+        load_character_sources(
+            character
+        )
+    )
+
+    previous_memories = (
+        get_previous_memories(
+            scene["id"],
+            character
+        )
+    )
+
+    data = {
+
+        "PERSONAGGIO":
+            character,
+
+        "SCENA":
+            scene["title"],
+
+        "DATI_PERSONAGGIO":
+            character_sources,
+
+        "RICORDI_PRECEDENTI":
+            previous_memories,
+
+        "CONVERSAZIONE_CORRENTE":
+            scene[
+                "messages"
+            ][character]
+    }
+
+    return query_openai(
+        character_prompt(
+            character,
+            scene
+        ),
+        data
+    )
+
+
+# ============================================================
+# CREA RICORDO SCENA
+# ============================================================
+
+def create_scene_memory(
+    scene,
+    pov,
+    extra_event=""
+):
+
+    books = load_writer_books()
+
+    character_sources = (
+        load_character_sources(
+            pov
+        )
+    )
+
+    previous_memories = (
+        get_previous_memories(
+            scene["id"],
+            pov
+        )
+    )
+
+    instructions = """
+Sei l'agente scrittore del romanzo
+Turing Hotel.
+
+Devi creare il RICORDO DELLA SCENA
+dal punto di vista del personaggio.
+
+ATTENZIONE:
+
+puoi utilizzare soltanto
+le informazioni fornite nei dati.
+
+Non aggiungere eventi.
+Non aggiungere relazioni.
+Non aggiungere motivazioni.
+Non aggiungere informazioni
+che il personaggio non possiede.
+
+Il ricordo NON è un riassunto tecnico.
+
+È una memoria narrativa persistente.
+
+Scrivi in prima persona.
+
+Conserva soprattutto:
+
+- cosa è successo;
+- persone incontrate;
+- parole importanti;
+- azioni;
+- emozioni;
+- dubbi;
+- desideri;
+- paure;
+- conflitti;
+- cambiamenti nei rapporti;
+- promesse;
+- decisioni;
+- dettagli che potrebbero
+  influenzare il personaggio in futuro.
+
+Se qualcosa è ambiguo,
+mantieni l'ambiguità.
+
+Se il personaggio non sa qualcosa,
+non trasformarla in certezza.
+
+I LIBRI DI RIFERIMENTO
+servono soltanto per:
+
+- ritmo;
+- atmosfera;
+- densità narrativa;
+- costruzione della memoria.
+
+NON devi copiare frasi.
+NON devi citare gli autori.
+NON devi imitare letteralmente
+una voce riconoscibile.
+
+Il risultato deve sembrare
+un autentico ricordo personale.
+"""
+
+    data = {
+
+        "PERSONAGGIO":
+            pov,
+
+        "SCENA":
+            scene["title"],
+
+        "DATI_PERSONAGGIO":
+            character_sources,
+
+        "RICORDI_PRECEDENTI":
+            previous_memories,
+
+        "CONVERSAZIONE_SCENA":
+            scene[
+                "messages"
+            ][pov],
+
+        "EVENTO_AGGIUNTIVO":
+            extra_event,
+
+        "LIBRI_RIFERIMENTO":
+            books
+    }
+
+    return query_openai(
+        instructions,
+        data
+    )
+
+
+# ============================================================
+# MEDIA
 # ============================================================
 
 IMAGE_EXTENSIONS = {
@@ -819,59 +1379,15 @@ VIDEO_EXTENSIONS = {
 }
 
 
-def number_from_filename(
-    filename
-):
-
-    numbers = re.findall(
-        r"\d+",
-        filename
-    )
-
-    if numbers:
-        return int(
-            numbers[-1]
-        )
-
-    return 0
-
-
-def sorted_assets(
-    paths
-):
-
-    return sorted(
-        paths,
-        key=lambda path: (
-            number_from_filename(
-                path.name
-            ),
-            path.name.lower()
-        )
-    )
-
-
-# ============================================================
-# VIDEO NOA / ADA PAGINA PERSONAGGI
-# ============================================================
-
-def character_videos(
-    character
-):
+def character_videos(character):
 
     character = character.lower()
 
     results = []
 
-    if not ASSETS_DIR.exists():
-        return results
-
     patterns = [
-
         rf"^{character}\.video(\d+)\.mp4$",
-
         rf"^{character}\.video\.(\d+)\.mp4$",
-
         rf"^{character}_video(\d+)\.mp4$"
     ]
 
@@ -900,10 +1416,6 @@ def character_videos(
     )
 
 
-# ============================================================
-# ASSET DI SCENA
-# ============================================================
-
 def find_scene_assets(
     scene_id,
     pov,
@@ -913,9 +1425,6 @@ def find_scene_assets(
     pov = pov.lower()
 
     results = []
-
-    if not ASSETS_DIR.exists():
-        return results
 
     for path in ASSETS_DIR.iterdir():
 
@@ -940,87 +1449,38 @@ def find_scene_assets(
             if suffix not in VIDEO_EXTENSIONS:
                 continue
 
-        # ================================================
-        # HALL
-        #
-        # hall1.jpg
-        # hall2.jpg
-        # hall3.jpg
-        #
-        # hall1.mp4
-        # hall.video1.mp4
-        #
-        # supporta anche:
-        # hall.noa.1.jpg
-        # hall.ada.1.jpg
-        # ================================================
-
         if scene_id == "hall":
 
             patterns = [
-
                 r"^hall\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
-
                 r"^hall\.video\d+\.(mp4|mov|webm|m4v)$",
-
                 rf"^hall\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
-
                 rf"^hall\.{pov}\.video\d+\.(mp4|mov|webm|m4v)$"
             ]
-
-        # ================================================
-        # FUNERALE
-        #
-        # funerale.noa.1.jpg
-        # funerale.noa.2.jpg
-        # funerale.noa.1.mp4
-        #
-        # funerale.ada.1.jpg
-        # ================================================
 
         elif scene_id == "funerale":
 
             patterns = [
-
-                rf"^funerale\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
-
-                rf"^funerale\.{pov}\.video\d+\.(mp4|mov|webm|m4v)$"
+                rf"^funerale\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
             ]
 
-        # ================================================
-        # REPARTO NASCITE
-        #
-        # nascite.noa.1.jpg
-        # nascite.noa.1.mp4
-        #
-        # nascite.ada.1.jpg
-        #
-        # supporta anche
-        # reparto.nascite.noa.1.jpg
-        # ================================================
+        elif scene_id == "matrimonio":
+
+            patterns = [
+                rf"^matrimonio\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
+            ]
 
         elif scene_id == "nascite":
 
             patterns = [
-
                 rf"^nascite\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
-
-                rf"^nascite\.{pov}\.video\d+\.(mp4|mov|webm|m4v)$",
-
                 rf"^reparto\.nascite\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
             ]
-
-        # ================================================
-        # RITORNO
-        # ================================================
 
         else:
 
             patterns = [
-
-                rf"^ritorno\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
-
-                rf"^ritorno\.{pov}\.video\d+\.(mp4|mov|webm|m4v)$"
+                rf"^ritorno\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
             ]
 
         for pattern in patterns:
@@ -1042,316 +1502,10 @@ def find_scene_assets(
 
 
 # ============================================================
-# LIBRI DELL'AGENTE SCRITTORE
-# ============================================================
-
-def load_writer_books():
-
-    books = []
-
-    if not ASSETS_DIR.exists():
-        return books
-
-    for path in ASSETS_DIR.iterdir():
-
-        if not path.is_file():
-            continue
-
-        stem = (
-            path.stem.lower()
-        )
-
-        if not stem.startswith(
-            "libriagenti"
-        ):
-            continue
-
-        suffix = (
-            path.suffix.lower()
-        )
-
-        # TXT / MD
-
-        if suffix in {
-            ".txt",
-            ".md"
-        }:
-
-            try:
-
-                content = (
-                    path.read_text(
-                        encoding="utf-8",
-                        errors="ignore"
-                    )
-                )
-
-                books.append(
-                    (
-                        path.name,
-                        content
-                    )
-                )
-
-            except Exception:
-                pass
-
-        # PDF
-
-        elif suffix == ".pdf":
-
-            try:
-
-                from pypdf import PdfReader
-
-                reader = PdfReader(
-                    str(path)
-                )
-
-                pages = []
-
-                for page in reader.pages:
-
-                    text = (
-                        page.extract_text()
-                    )
-
-                    if text:
-                        pages.append(
-                            text
-                        )
-
-                books.append(
-                    (
-                        path.name,
-                        "\n".join(
-                            pages
-                        )
-                    )
-                )
-
-            except Exception:
-                pass
-
-    books = sorted(
-        books,
-        key=lambda item:
-        number_from_filename(
-            item[0]
-        )
-    )
-
-    # Evitiamo prompt enormi
-
-    MAX_TOTAL_CHARS = 30000
-
-    result = []
-    total = 0
-
-    for filename, text in books:
-
-        remaining = (
-            MAX_TOTAL_CHARS
-            - total
-        )
-
-        if remaining <= 0:
-            break
-
-        excerpt = text[
-            :remaining
-        ]
-
-        result.append({
-
-            "file":
-                filename,
-
-            "testo":
-                excerpt
-        })
-
-        total += len(
-            excerpt
-        )
-
-    return result
-
-
-# ============================================================
-# PROMPT PERSONAGGIO
-# ============================================================
-
-def character_prompt(
-    character
-):
-
-    agent = state[
-        "agents"
-    ][character]
-
-    return f"""
-SEI {character}.
-
-Sei un personaggio del romanzo
-TURING HOTEL.
-
-Non sei un assistente.
-
-MONDO:
-
-{state["world"]}
-
-
-PERSONAGGIO:
-
-{agent["profile"]}
-
-
-MEMORIA PERSONALE:
-
-{agent["memory"]}
-
-
-REGOLE:
-
-Interpreta soltanto {character}.
-
-Non scrivere le battute
-degli altri personaggi.
-
-Non decidere cosa fanno
-gli altri personaggi.
-
-Non spiegare la teoria.
-
-Non anticipare il futuro.
-
-Non cercare di aiutare
-l'utente come farebbe
-un assistente.
-
-Vivi ciò che accade.
-
-Puoi:
-
-- parlare;
-- agire;
-- sbagliare;
-- dubitare;
-- mentire;
-- essere contraddittoria;
-- restare in silenzio;
-- cambiare idea.
-
-Scrivi in italiano naturale,
-contemporaneo e credibile.
-"""
-
-
-# ============================================================
-# AGENTE SCRITTORE DEL DIARIO
-# ============================================================
-
-def write_scene_diary(
-    scene,
-    pov
-):
-
-    books = (
-        load_writer_books()
-    )
-
-    instructions = """
-Sei l'agente scrittore del romanzo
-Turing Hotel.
-
-Devi redigere il DIARIO DELLA SCENA.
-
-Il diario NON è un riassunto tecnico.
-
-È una memoria narrativa
-di ciò che il personaggio ha vissuto.
-
-Scrivi in prima persona.
-
-Conserva soltanto ciò che
-potrebbe avere conseguenze future:
-
-- eventi;
-- persone;
-- emozioni;
-- reazioni;
-- dubbi;
-- cambiamenti nei rapporti;
-- dettagli osservati;
-- promesse;
-- paure;
-- desideri;
-- contraddizioni;
-- decisioni.
-
-Non aggiungere informazioni
-che il personaggio non conosce.
-
-I testi indicati come
-RIFERIMENTI LETTERARI
-servono soltanto come riferimento
-per ritmo, densità,
-atmosfera e tecnica narrativa.
-
-Non copiare frasi.
-Non citare gli autori.
-Non imitare letteralmente
-uno stile riconoscibile.
-
-Il risultato deve sembrare
-il diario personale
-del personaggio.
-"""
-
-    data = {
-
-        "personaggio":
-            pov,
-
-        "scena":
-            scene["title"],
-
-        "profilo_personaggio":
-            state[
-                "agents"
-            ][pov][
-                "profile"
-            ],
-
-        "conversazione":
-            scene[
-                "messages"
-            ][pov],
-
-        "diario_attuale":
-            scene[
-                "diary"
-            ][pov],
-
-        "riferimenti_letterari":
-            books
-    }
-
-    return query_openai(
-        instructions,
-        data
-    )
-
-
-# ============================================================
-# PAGINA INIZIALE
+# HOME
 # ============================================================
 
 def page_entrance():
-
-    # SOLO FOTO
 
     if HOTEL_IMAGE.exists():
 
@@ -1363,8 +1517,7 @@ def page_entrance():
     else:
 
         st.info(
-            "Carica il file "
-            "assets/TuringHotel.jpg"
+            "Carica assets/TuringHotel.jpg"
         )
 
     st.write("")
@@ -1390,7 +1543,7 @@ def page_entrance():
 
 
 # ============================================================
-# SCELTA NOA / ADA
+# SCELTA PERSONAGGIO
 # ============================================================
 
 def page_characters():
@@ -1400,8 +1553,6 @@ def page_characters():
             [1, .08, 1]
         )
     )
-
-    # NOA
 
     with col_noa:
 
@@ -1419,8 +1570,6 @@ def page_characters():
             unsafe_allow_html=True
         )
 
-        # video Noa sotto la foto
-
         for video in character_videos(
             "noa"
         ):
@@ -1435,14 +1584,10 @@ def page_characters():
         ):
 
             st.session_state.pov = "Noa"
-
             st.session_state.scene_index = 0
-
             st.session_state.page = "story"
 
             st.rerun()
-
-    # ADA
 
     with col_ada:
 
@@ -1460,8 +1605,6 @@ def page_characters():
             unsafe_allow_html=True
         )
 
-        # video Ada sotto la foto
-
         for video in character_videos(
             "ada"
         ):
@@ -1476,16 +1619,14 @@ def page_characters():
         ):
 
             st.session_state.pov = "Ada"
-
             st.session_state.scene_index = 0
-
             st.session_state.page = "story"
 
             st.rerun()
 
 
 # ============================================================
-# RESET CONVERSAZIONE
+# CANCELLA CONVERSAZIONE
 # ============================================================
 
 def reset_scene_chat(
@@ -1497,19 +1638,11 @@ def reset_scene_chat(
         "messages"
     ][pov] = []
 
-    # cancelliamo anche il diario,
-    # perché non deve conservare
-    # una conversazione ormai azzerata
+    scene[
+        "diary"
+    ][pov] = ""
 
-    if scene[
-        "id"
-    ] != "ritorno":
-
-        scene[
-            "diary"
-        ][pov] = ""
-
-    else:
+    if scene["id"] == "ritorno":
 
         scene[
             "decision"
@@ -1563,8 +1696,6 @@ def render_chat(
                 text
             )
 
-    # CANCELLA
-
     clear_col, blank = (
         st.columns(
             [1.3, 3]
@@ -1588,8 +1719,6 @@ def render_chat(
             )
 
             st.rerun()
-
-    # INTERLOCUTORE
 
     speaker = st.selectbox(
 
@@ -1628,20 +1757,16 @@ def render_chat(
                 user_text
         })
 
-        reply = query_openai(
+        with st.spinner(
+            f"{pov} sta reagendo..."
+        ):
 
-            character_prompt(
-                pov
-            ),
-
-            {
-                "scena":
-                    scene["title"],
-
-                "conversazione_finora":
-                    messages
-            }
-        )
+            reply = (
+                answer_as_character(
+                    pov,
+                    scene
+                )
+            )
 
         messages.append({
 
@@ -1658,7 +1783,7 @@ def render_chat(
 
 
 # ============================================================
-# GALLERIA FOTO
+# FOTO
 # ============================================================
 
 def render_photo_gallery(
@@ -1667,15 +1792,6 @@ def render_photo_gallery(
 
     if not images:
         return
-
-    st.markdown(
-        '<div class="media-title">'
-        'Immagini'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    # 3 immagini per riga
 
     for start in range(
         0,
@@ -1701,6 +1817,80 @@ def render_photo_gallery(
                     str(image),
                     use_container_width=True
                 )
+
+
+# ============================================================
+# CREA RICORDO BUTTON
+# ============================================================
+
+def render_memory_button(
+    scene,
+    pov,
+    extra_event=""
+):
+
+    st.markdown("---")
+
+    if st.button(
+        "CREA RICORDO SCENA",
+        key=(
+            f"memory_"
+            f"{scene['id']}_"
+            f"{pov}"
+        )
+    ):
+
+        if (
+            not scene[
+                "messages"
+            ][pov]
+            and
+            not extra_event
+        ):
+
+            st.warning(
+                "Non c'è ancora nulla "
+                "da trasformare in ricordo."
+            )
+
+        else:
+
+            with st.spinner(
+                "L'agente scrittore "
+                "sta creando il ricordo..."
+            ):
+
+                scene[
+                    "diary"
+                ][pov] = (
+                    create_scene_memory(
+                        scene,
+                        pov,
+                        extra_event
+                    )
+                )
+
+            save_state()
+
+            st.rerun()
+
+    memory = scene[
+        "diary"
+    ][pov]
+
+    if memory:
+
+        with st.expander(
+            "RICORDO DELLA SCENA",
+            expanded=False
+        ):
+
+            st.markdown(
+                f'<div class="diary">'
+                f'{memory}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
 
 
 # ============================================================
@@ -1735,9 +1925,7 @@ def render_standard_scene(
         unsafe_allow_html=True
     )
 
-    # ========================================================
-    # VIDEO SOPRA LA CHAT
-    # ========================================================
+    # VIDEO SOPRA
 
     videos = find_scene_assets(
         scene["id"],
@@ -1745,33 +1933,20 @@ def render_standard_scene(
         "video"
     )
 
-    if videos:
+    for video in videos:
 
-        st.markdown(
-            '<div class="media-title">'
-            'Video'
-            '</div>',
-            unsafe_allow_html=True
+        st.video(
+            str(video)
         )
 
-        for video in videos:
-
-            st.video(
-                str(video)
-            )
-
-    # ========================================================
     # CHAT
-    # ========================================================
 
     render_chat(
         scene,
         pov
     )
 
-    # ========================================================
-    # FOTO SOTTO LA CHAT
-    # ========================================================
+    # FOTO SOTTO
 
     images = find_scene_assets(
         scene["id"],
@@ -1787,71 +1962,12 @@ def render_standard_scene(
             images
         )
 
-    # ========================================================
-    # DIARIO
-    # ========================================================
+    # RICORDO
 
-    st.markdown("---")
-
-    diary = scene[
-        "diary"
-    ][pov]
-
-    if st.button(
-        "AGGIORNA IL DIARIO DELLA SCENA",
-        key=(
-            f"diary_"
-            f"{scene['id']}_"
-            f"{pov}"
-        )
-    ):
-
-        if not scene[
-            "messages"
-        ][pov]:
-
-            st.warning(
-                "Non c'è ancora una conversazione "
-                "da trasformare in diario."
-            )
-
-        else:
-
-            with st.spinner(
-                "L'agente scrittore "
-                "sta redigendo il diario..."
-            ):
-
-                scene[
-                    "diary"
-                ][pov] = (
-                    write_scene_diary(
-                        scene,
-                        pov
-                    )
-                )
-
-            save_state()
-
-            st.rerun()
-
-    diary = scene[
-        "diary"
-    ][pov]
-
-    if diary:
-
-        with st.expander(
-            "DIARIO DELLA SCENA",
-            expanded=False
-        ):
-
-            st.markdown(
-                f'<div class="diary">'
-                f'{diary}'
-                f'</div>',
-                unsafe_allow_html=True
-            )
+    render_memory_button(
+        scene,
+        pov
+    )
 
 
 # ============================================================
@@ -1863,21 +1979,14 @@ def render_return():
     pov = st.session_state.pov
 
     scene = next(
-
         scene
-
-        for scene in state[
-            "scenes"
-        ]
-
-        if scene[
-            "id"
-        ] == "ritorno"
+        for scene in state["scenes"]
+        if scene["id"] == "ritorno"
     )
 
     st.markdown(
         '<div class="scene-number">'
-        'Sequenza 4'
+        'Sequenza 5'
         '</div>',
         unsafe_allow_html=True
     )
@@ -1896,8 +2005,6 @@ def render_return():
         unsafe_allow_html=True
     )
 
-    # VIDEO
-
     videos = find_scene_assets(
         "ritorno",
         pov,
@@ -1910,39 +2017,12 @@ def render_return():
             str(video)
         )
 
-    # DIARI PRECEDENTI
-
-    diaries = []
-
-    for previous_scene in state[
-        "scenes"
-    ]:
-
-        if previous_scene[
-            "id"
-        ] not in {
-            "hall",
-            "funerale",
-            "nascite"
-        }:
-            continue
-
-        diary = previous_scene[
-            "diary"
-        ][pov]
-
-        if diary:
-
-            diaries.append({
-
-                "scena":
-                    previous_scene[
-                        "title"
-                    ],
-
-                "diario":
-                    diary
-            })
+    memories = (
+        get_previous_memories(
+            "ritorno",
+            pov
+        )
+    )
 
     st.markdown(
         """
@@ -1951,117 +2031,129 @@ def render_return():
 Nel ritorno l'autore non decide
 come la protagonista deve reagire.
 
-La protagonista utilizza
-i propri diari delle scene precedenti
-come memoria della propria esperienza.
+La protagonista dispone soltanto
+dei propri dati e dei ricordi
+che ha costruito nelle scene precedenti.
 
 </div>
 """,
         unsafe_allow_html=True
     )
 
-    if not diaries:
-
-        st.warning(
-            "Non esistono ancora diari "
-            "delle scene precedenti."
-        )
-
-    else:
+    if memories:
 
         with st.expander(
-            "MEMORIE DELLE SCENE PRECEDENTI",
-            expanded=False
+            "RICORDI DELLE SCENE PRECEDENTI"
         ):
 
-            for diary in diaries:
+            for memory in memories:
 
                 st.markdown(
-                    f"### {diary['scena']}"
+                    f"### {memory['scena']}"
                 )
 
                 st.write(
-                    diary["diario"]
+                    memory["ricordo"]
                 )
 
-    # DECISIONE AUTONOMA
+    else:
+
+        st.warning(
+            "Non esistono ancora "
+            "ricordi delle scene precedenti."
+        )
 
     if st.button(
         f"LASCIA DECIDERE {pov.upper()}",
         type="primary"
     ):
 
-        if not diaries:
+        if not memories:
 
             st.warning(
-                "Servono almeno dei diari "
-                "prima di arrivare al ritorno."
+                "Il personaggio non ha "
+                "ancora ricordi sufficienti."
             )
 
         else:
 
+            sources = (
+                load_character_sources(
+                    pov
+                )
+            )
+
+            instructions = (
+                character_prompt(
+                    pov,
+                    scene
+                )
+                +
+                """
+
+==============================
+IL RITORNO
+==============================
+
+Ora devi prendere autonomamente
+una decisione.
+
+Puoi utilizzare SOLTANTO:
+
+- i tuoi file;
+- il tuo profilo;
+- i tuoi ricordi;
+- ciò che hai vissuto.
+
+Non inventare nuovi fatti
+per giustificare la decisione.
+
+Se una cosa non la sai,
+non usarla come certezza.
+
+Non cercare il finale migliore.
+
+Non cercare il finale più drammatico.
+
+Non cercare di capire
+cosa vuole l'autore.
+
+Decidi come questo personaggio
+deciderebbe realmente
+in base alla propria esperienza.
+
+Puoi:
+
+- parlare;
+- agire;
+- partire;
+- restare;
+- rifiutare;
+- aspettare;
+- non scegliere;
+- compiere un'azione irreversibile.
+
+Scrivi dal punto di vista
+del personaggio.
+"""
+            )
+
             with st.spinner(
-                f"{pov} sta ricordando "
-                "ciò che ha vissuto..."
+                f"{pov} sta ricordando..."
             ):
 
                 decision = query_openai(
 
-                    character_prompt(
-                        pov
-                    )
-                    +
-                    """
-
-QUESTA È LA SCENA DEL RITORNO.
-
-Per la prima volta
-non sarà l'autore a dirti
-come devi reagire.
-
-Hai a disposizione
-i tuoi diari delle esperienze precedenti.
-
-Leggili come ricordi tuoi.
-
-Valuta:
-
-- ciò che hai imparato;
-- chi hai incontrato;
-- ciò che hai perso;
-- chi ti ha ferito;
-- chi hai amato;
-- chi ti ha deluso;
-- ciò che desideri;
-- ciò che temi;
-- le decisioni che hai già preso;
-- le tue contraddizioni.
-
-Ora scegli autonomamente.
-
-Non scegliere ciò che
-rende migliore la storia.
-
-Non cercare ciò che
-l'autore vorrebbe.
-
-Fai ciò che questo personaggio
-farebbe davvero
-dopo aver vissuto
-quelle esperienze.
-
-Scrivi la scena
-dal tuo punto di vista.
-""",
+                    instructions,
 
                     {
-                        "personaggio":
-                            pov,
+                        "DATI_PERSONAGGIO":
+                            sources,
 
-                        "diari":
-                            diaries,
+                        "RICORDI":
+                            memories,
 
-                        "scena":
+                        "SCENA":
                             "Il ritorno"
                     }
                 )
@@ -2089,25 +2181,6 @@ dal tuo punto di vista.
             decision
         )
 
-    # RESET DECISIONE
-
-    if decision:
-
-        if st.button(
-            "🗑 CANCELLA IL RITORNO",
-            key=f"clear_return_{pov}"
-        ):
-
-            scene[
-                "decision"
-            ][pov] = ""
-
-            save_state()
-
-            st.rerun()
-
-    # FOTO
-
     images = find_scene_assets(
         "ritorno",
         pov,
@@ -2122,9 +2195,17 @@ dal tuo punto di vista.
             images
         )
 
+    # ANCHE IL RITORNO HA IL SUO RICORDO
+
+    render_memory_button(
+        scene,
+        pov,
+        extra_event=decision
+    )
+
 
 # ============================================================
-# NAVIGAZIONE STORIA
+# NAVIGAZIONE
 # ============================================================
 
 def page_story():
@@ -2142,9 +2223,27 @@ def page_story():
     order = [
         "hall",
         "funerale",
+        "matrimonio",
         "nascite",
         "ritorno"
     ]
+
+    titles = {
+        "hall":
+            "La Hall",
+
+        "funerale":
+            "Il Funerale",
+
+        "matrimonio":
+            "Il Matrimonio",
+
+        "nascite":
+            "Il reparto nascite",
+
+        "ritorno":
+            "Il ritorno"
+    }
 
     scene_map = {
 
@@ -2158,16 +2257,12 @@ def page_story():
 
     index = min(
         st.session_state.scene_index,
-        3
+        len(order) - 1
     )
 
-    st.session_state.scene_index = (
-        index
-    )
+    st.session_state.scene_index = index
 
-    scene_id = order[
-        index
-    ]
+    scene_id = order[index]
 
     # SIDEBAR
 
@@ -2190,20 +2285,6 @@ def page_story():
 
     st.sidebar.markdown("---")
 
-    titles = {
-        "hall":
-            "La Hall",
-
-        "funerale":
-            "Il Funerale",
-
-        "nascite":
-            "Il reparto nascite",
-
-        "ritorno":
-            "Il ritorno"
-    }
-
     for i, sid in enumerate(
         order
     ):
@@ -2219,13 +2300,37 @@ def page_story():
             key=f"nav_{sid}"
         ):
 
-            st.session_state.scene_index = (
-                i
-            )
+            st.session_state.scene_index = i
 
             st.rerun()
 
     st.sidebar.markdown("---")
+
+    # permette di verificare
+    # quali file sta leggendo il personaggio
+
+    with st.sidebar.expander(
+        "DATI AGENTE"
+    ):
+
+        sources = (
+            load_character_sources(
+                pov
+            )
+        )
+
+        if not sources:
+
+            st.caption(
+                "Nessun file trovato "
+                "nella cartella characters."
+            )
+
+        for source in sources:
+
+            st.write(
+                source["file"]
+            )
 
     if st.sidebar.button(
         "CAMBIA PROTAGONISTA"
@@ -2262,7 +2367,7 @@ def page_story():
             index
         )
 
-    # NAVIGAZIONE BASSA
+    # NAVIGAZIONE
 
     st.markdown("---")
 
@@ -2286,44 +2391,11 @@ def page_story():
 
     with next_col:
 
-        if index < 3:
+        if index < len(order) - 1:
 
             if st.button(
                 "SUCCESSIVA →"
             ):
-
-                current_scene = scene_map[
-                    scene_id
-                ]
-
-                # ----------------------------------------
-                # CREA AUTOMATICAMENTE IL DIARIO
-                # QUANDO LASCIAMO UNA SCENA
-                # ----------------------------------------
-
-                if (
-                    scene_id
-                    != "ritorno"
-                    and
-                    current_scene[
-                        "messages"
-                    ][pov]
-                ):
-
-                    with st.spinner(
-                        "Salvataggio del diario..."
-                    ):
-
-                        current_scene[
-                            "diary"
-                        ][pov] = (
-                            write_scene_diary(
-                                current_scene,
-                                pov
-                            )
-                        )
-
-                    save_state()
 
                 st.session_state.scene_index += 1
 
