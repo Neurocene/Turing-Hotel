@@ -54,8 +54,11 @@ except Exception:
 if not openai_key:
     openai_key = os.environ.get("OPENAI_API_KEY")
 
-client = OpenAI(api_key=openai_key) if openai_key else None
-
+client = (
+    OpenAI(api_key=openai_key)
+    if openai_key
+    else None
+)
 
 try:
     OPENAI_MODEL = st.secrets.get(
@@ -169,19 +172,12 @@ div.stButton > button:hover {
     margin-bottom: .7rem;
 }
 
-.source-box {
-    background: #111518;
-    border: 1px solid #2d3439;
-    padding: 15px;
-    margin-bottom: 10px;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
 
 # ============================================================
-# STATO DI DEFAULT
+# STATO BASE
 # ============================================================
 
 DEFAULT_STATE = {
@@ -194,15 +190,10 @@ Un tempo era prestigioso e mondano.
 Oggi vive una lenta decadenza.
 
 Fuori stagione mantiene ancora
-le tracce del proprio lusso:
-legno, ottone, velluti,
-grandi finestre,
-vecchie fotografie,
-stanze troppo grandi
-e una veranda affacciata sul mare d'inverno.
+le tracce del proprio lusso.
 
 La storia viene vissuta attraverso
-due protagoniste: Noa e Ada.
+Noa e Ada.
 """,
 
     "agents": {
@@ -324,7 +315,7 @@ e molto osservatrice.
 
 
 # ============================================================
-# UTILITY
+# BASIC UTILS
 # ============================================================
 
 def safe_list(value):
@@ -360,7 +351,7 @@ def sorted_assets(paths):
 
 
 # ============================================================
-# LETTURA FILE TESTO / PDF
+# LETTURA FILE
 # ============================================================
 
 def read_reference_file(path):
@@ -370,19 +361,25 @@ def read_reference_file(path):
     if suffix in [".txt", ".md"]:
 
         try:
+
             return path.read_text(
                 encoding="utf-8",
                 errors="ignore"
             )
+
         except Exception:
+
             return ""
 
     if suffix == ".pdf":
 
         try:
+
             from pypdf import PdfReader
 
-            reader = PdfReader(str(path))
+            reader = PdfReader(
+                str(path)
+            )
 
             pages = []
 
@@ -391,33 +388,31 @@ def read_reference_file(path):
                 text = page.extract_text()
 
                 if text:
-                    pages.append(text)
 
-            return "\n".join(pages)
+                    pages.append(
+                        text
+                    )
+
+            return "\n".join(
+                pages
+            )
 
         except Exception:
+
             return ""
 
     return ""
 
 
 # ============================================================
-# DATI PERSONAGGI DA FILE
+# FILE DEL PERSONAGGIO
 # ============================================================
 
-def load_character_sources(character):
+def load_character_sources(
+    character
+):
 
-    """
-    Noa legge:
-    - tutti i file noa*
-    - tutti i file shared*
-
-    Ada legge:
-    - tutti i file ada*
-    - tutti i file shared*
-    """
-
-    character_prefix = character.lower()
+    prefix = character.lower()
 
     selected = []
 
@@ -439,48 +434,65 @@ def load_character_sources(character):
         filename = path.name.lower()
 
         if (
-            filename.startswith(character_prefix)
-            or filename.startswith("shared")
+            filename.startswith(prefix)
+            or
+            filename.startswith("shared")
         ):
-            selected.append(path)
+
+            selected.append(
+                path
+            )
 
     selected = sorted(
         selected,
-        key=lambda x: x.name.lower()
+        key=lambda p: p.name.lower()
     )
 
     results = []
 
-    # limite di sicurezza
-    max_total_chars = 80000
+    MAX_TOTAL_CHARS = 80000
+
     used = 0
 
     for path in selected:
 
-        text = read_reference_file(path)
+        text = read_reference_file(
+            path
+        )
 
         if not text:
             continue
 
-        remaining = max_total_chars - used
+        remaining = (
+            MAX_TOTAL_CHARS
+            - used
+        )
 
         if remaining <= 0:
             break
 
-        excerpt = text[:remaining]
+        excerpt = text[
+            :remaining
+        ]
 
         results.append({
-            "file": path.name,
-            "contenuto": excerpt
+
+            "file":
+                path.name,
+
+            "contenuto":
+                excerpt
         })
 
-        used += len(excerpt)
+        used += len(
+            excerpt
+        )
 
     return results
 
 
 # ============================================================
-# LIBRI AGENTE SCRITTORE
+# LIBRI DELL'AGENTE SCRITTORE
 # ============================================================
 
 def load_writer_books():
@@ -488,7 +500,7 @@ def load_writer_books():
     books = []
 
     if not ASSETS_DIR.exists():
-        return books
+        return []
 
     for path in ASSETS_DIR.iterdir():
 
@@ -507,7 +519,9 @@ def load_writer_books():
         ]:
             continue
 
-        content = read_reference_file(path)
+        content = read_reference_file(
+            path
+        )
 
         if content:
 
@@ -526,15 +540,16 @@ def load_writer_books():
         )
     )
 
-    max_total_chars = 30000
-
     result = []
+
+    MAX_TOTAL_CHARS = 30000
+
     used = 0
 
     for filename, content in books:
 
         remaining = (
-            max_total_chars
+            MAX_TOTAL_CHARS
             - used
         )
 
@@ -546,17 +561,23 @@ def load_writer_books():
         ]
 
         result.append({
-            "file": filename,
-            "testo": excerpt
+
+            "file":
+                filename,
+
+            "testo":
+                excerpt
         })
 
-        used += len(excerpt)
+        used += len(
+            excerpt
+        )
 
     return result
 
 
 # ============================================================
-# MIGRAZIONE STATO
+# MIGRAZIONE
 # ============================================================
 
 def find_old_scene(
@@ -578,10 +599,14 @@ def find_old_scene(
         ):
             continue
 
-        if str(
-            old_scene.get("id", "")
-        ).lower() == new_id:
+        old_id = str(
+            old_scene.get(
+                "id",
+                ""
+            )
+        ).lower()
 
+        if old_id == new_id:
             return old_scene
 
     keywords = {
@@ -633,7 +658,9 @@ def find_old_scene(
     return None
 
 
-def migrate_messages(old_scene):
+def migrate_messages(
+    old_scene
+):
 
     result = {
         "Noa": [],
@@ -680,14 +707,19 @@ def migrate_messages(old_scene):
         )
 
         if old_agent == "Ada":
+
             result["Ada"] = messages
+
         else:
+
             result["Noa"] = messages
 
     return result
 
 
-def migrate_diary(old_scene):
+def migrate_diary(
+    old_scene
+):
 
     result = {
         "Noa": "",
@@ -724,7 +756,9 @@ def migrate_diary(old_scene):
     return result
 
 
-def migrate_state(old_state):
+def migrate_state(
+    old_state
+):
 
     fresh = copy.deepcopy(
         DEFAULT_STATE
@@ -734,6 +768,7 @@ def migrate_state(old_state):
         old_state,
         dict
     ):
+
         return fresh
 
     if isinstance(
@@ -743,7 +778,9 @@ def migrate_state(old_state):
         str
     ):
 
-        fresh["world"] = old_state[
+        fresh[
+            "world"
+        ] = old_state[
             "world"
         ]
 
@@ -813,19 +850,21 @@ def migrate_state(old_state):
         if not old_scene:
             continue
 
-        new_scene["messages"] = (
-            migrate_messages(
-                old_scene
-            )
+        new_scene[
+            "messages"
+        ] = migrate_messages(
+            old_scene
         )
 
-        new_scene["diary"] = (
-            migrate_diary(
-                old_scene
-            )
+        new_scene[
+            "diary"
+        ] = migrate_diary(
+            old_scene
         )
 
-        if new_scene["id"] == "ritorno":
+        if new_scene[
+            "id"
+        ] == "ritorno":
 
             decision = safe_dict(
                 old_scene.get(
@@ -856,7 +895,7 @@ def migrate_state(old_state):
 
 
 # ============================================================
-# CARICAMENTO STATO
+# LOAD STATE
 # ============================================================
 
 if "state" not in st.session_state:
@@ -948,8 +987,11 @@ def query_openai(
     try:
 
         response = client.responses.create(
+
             model=OPENAI_MODEL,
+
             instructions=instructions,
+
             input=json.dumps(
                 data,
                 ensure_ascii=False
@@ -964,6 +1006,148 @@ def query_openai(
             "Errore OpenAI: "
             + str(e)
         )
+
+
+# ============================================================
+# PULIZIA RISPOSTA PERSONAGGIO
+# ============================================================
+
+def clean_character_response(
+    raw_response
+):
+
+    """
+    L'interfaccia deve mostrare solo
+    ciò che il personaggio dice/fa.
+
+    Se il modello restituisce:
+    {
+        "dialogue": "...",
+        "inner_note": "...",
+        ...
+    }
+
+    mostriamo soltanto dialogue.
+    """
+
+    if not raw_response:
+
+        return ""
+
+    text = str(
+        raw_response
+    ).strip()
+
+    # elimina eventuali code fence
+
+    if text.startswith("```"):
+
+        text = re.sub(
+            r"^```(?:json)?",
+            "",
+            text,
+            flags=re.IGNORECASE
+        )
+
+        text = re.sub(
+            r"```$",
+            "",
+            text
+        )
+
+        text = text.strip()
+
+    # prova JSON completo
+
+    try:
+
+        data = json.loads(
+            text
+        )
+
+        if isinstance(
+            data,
+            dict
+        ):
+
+            # ordine di preferenza
+
+            for key in [
+                "dialogue",
+                "dialogo",
+                "response",
+                "reply",
+                "text",
+                "answer",
+                "azione",
+                "action"
+            ]:
+
+                value = data.get(
+                    key
+                )
+
+                if isinstance(
+                    value,
+                    str
+                ) and value.strip():
+
+                    return value.strip()
+
+    except Exception:
+        pass
+
+    # Se il testo contiene un JSON preceduto
+    # o seguito da altro, proviamo a recuperarlo.
+
+    json_match = re.search(
+        r"\{.*\}",
+        text,
+        flags=re.DOTALL
+    )
+
+    if json_match:
+
+        try:
+
+            data = json.loads(
+                json_match.group(0)
+            )
+
+            if isinstance(
+                data,
+                dict
+            ):
+
+                for key in [
+                    "dialogue",
+                    "dialogo",
+                    "response",
+                    "reply",
+                    "text",
+                    "answer",
+                    "azione",
+                    "action"
+                ]:
+
+                    value = data.get(
+                        key
+                    )
+
+                    if isinstance(
+                        value,
+                        str
+                    ) and value.strip():
+
+                        return value.strip()
+
+        except Exception:
+            pass
+
+    # altrimenti restituisce il testo
+    # così com'è
+
+    return text
 
 
 # ============================================================
@@ -993,7 +1177,9 @@ def get_previous_memories(
         scene = next(
             (
                 s
-                for s in state["scenes"]
+                for s in state[
+                    "scenes"
+                ]
                 if s["id"] == scene_id
             ),
             None
@@ -1017,15 +1203,19 @@ def get_previous_memories(
         if memory:
 
             memories.append({
-                "scena": scene["title"],
-                "ricordo": memory
+
+                "scena":
+                    scene["title"],
+
+                "ricordo":
+                    memory
             })
 
     return memories
 
 
 # ============================================================
-# PROMPT DEL PERSONAGGIO
+# PROMPT PERSONAGGIO
 # ============================================================
 
 def character_prompt(
@@ -1037,159 +1227,177 @@ def character_prompt(
         "agents"
     ][character]
 
-    character_sources = (
-        load_character_sources(
-            character
-        )
-    )
-
-    previous_memories = (
-        get_previous_memories(
-            scene["id"],
-            character
-        )
-    )
-
     return f"""
 SEI {character}.
 
-SEI UN PERSONAGGIO DEL ROMANZO TURING HOTEL.
-NON SEI UN ASSISTENTE.
+Sei un personaggio del romanzo
+TURING HOTEL.
 
-==============================
-REGOLA FONDAMENTALE
-==============================
+NON sei un assistente.
 
-DEVI SEMPRE LAVORARE SOLTANTO
-CON I DATI CHE POSSIEDI.
+================================
+REGOLA PRINCIPALE
+================================
 
-I DATI A TUA DISPOSIZIONE SONO:
+Devi lavorare esclusivamente
+con i dati che possiedi.
 
-1. I file narrativi del personaggio.
-2. I file condivisi.
-3. Il profilo del personaggio.
-4. I ricordi delle scene precedenti.
-5. La conversazione della scena corrente.
-6. Ciò che viene detto o mostrato nella scena.
+Puoi utilizzare:
 
-NON PUOI INVENTARE COME FATTO
-UN'INFORMAZIONE CHE NON COMPARE
-IN QUESTI DATI.
+1. i file del personaggio;
+2. i file condivisi;
+3. il tuo profilo;
+4. i ricordi delle scene precedenti;
+5. la conversazione corrente.
 
-Se non conosci qualcosa:
+Se non possiedi un'informazione,
+non inventarla come fatto.
 
-- non inventarla;
-- puoi dire di non saperlo;
-- puoi avere un sospetto;
-- puoi fare un'ipotesi;
-- puoi ricordare male;
-- puoi fraintendere;
-- puoi chiedere;
-- puoi restare nel dubbio.
+Puoi:
 
-È ammesso che IL PERSONAGGIO
-abbia una convinzione falsa.
+- non sapere;
+- dubitare;
+- sospettare;
+- fare un'ipotesi;
+- ricordare male;
+- fraintendere.
 
-Ma non devi trasformare
-una tua invenzione in un fatto
-del mondo narrativo.
-
-==============================
-MONDO BASE
-==============================
+================================
+MONDO
+================================
 
 {state["world"]}
 
-==============================
-PROFILO BASE
-==============================
+================================
+PROFILO
+================================
 
 {agent["profile"]}
 
-==============================
+================================
 MEMORIA GENERALE
-==============================
+================================
 
 {agent["memory"]}
 
-==============================
-REGOLE DI COMPORTAMENTO
-==============================
+================================
+COMPORTAMENTO
+================================
 
 Interpreta soltanto {character}.
 
+Non raccontare ciò che
+gli altri personaggi pensano.
+
 Non scrivere le battute
 degli altri personaggi.
-
-Non decidere cosa fanno
-gli altri personaggi.
 
 Non anticipare eventi futuri.
 
 Non spiegare la teoria.
 
-Non commentare il funzionamento
-dell'intelligenza artificiale.
+Non fare analisi psicologiche
+della tua risposta.
 
-Non comportarti come
-un assistente ChatGPT.
+Non spiegare le tue intenzioni.
 
-Non dire:
-"come posso aiutarti?",
-"a disposizione",
-"capisco la tua richiesta",
-o formule simili.
+Non fornire statistiche emotive.
 
-Vivi la scena.
+Non produrre valori numerici
+di fiducia, paura, sospetto,
+vulnerabilità o altri stati.
 
-Puoi:
+NON restituire JSON.
 
-- parlare;
-- agire;
-- osservare;
-- mentire;
-- sbagliare;
-- dubitare;
-- avere paura;
-- desiderare;
-- essere contraddittoria;
-- cambiare idea;
-- tacere;
-- rifiutarti di rispondere.
+NON restituire dizionari.
 
-Le tue risposte devono essere
-coerenti con i dati del personaggio
-e con ciò che hai vissuto.
+NON usare campi come:
 
-Non cercare di rendere
-la storia più interessante
-inventando eventi.
+dialogue
+inner_note
+intention
+state
+memory_candidate
+bio_refs
+trust
+suspicion
+vulnerability
+defiance
 
-Non cercare di compiacere l'autore.
+Questi dati NON DEVONO MAI
+comparire nella risposta visibile.
+
+================================
+FORMATO OBBLIGATORIO
+================================
+
+La risposta deve contenere
+SOLTANTO ciò che {character}
+dice oppure fa nella scena.
+
+Può essere:
+
+una battuta:
+
+Non ne sono sicura.
+
+oppure una breve azione narrativa:
+
+Noa guarda Ada per qualche secondo,
+poi distoglie lo sguardo.
+
+oppure entrambe:
+
+Noa abbassa la voce.
+«Non ne sono sicura.»
+
+NESSUNA spiegazione aggiuntiva.
+
+NESSUN JSON.
+
+NESSUNA nota interna.
+
+NESSUNA intestazione.
+
+NESSUNA analisi.
+
+================================
+STILE
+================================
+
+Comportati come una persona
+presente nella scena.
+
+Non dire automaticamente tutto
+ciò che sai.
+
+Una persona reale seleziona
+ciò che è rilevante
+in quel momento.
+
+Se ti viene chiesto:
+"Conosci Ada?"
+
+non devi elencare tutta
+la biografia di Ada.
+
+Rispondi alla domanda
+come risponderebbe {character}
+in una conversazione reale.
+
+Usa i dati per essere coerente,
+non per mostrarli tutti.
+
+Le informazioni devono emergere
+solo quando sono pertinenti.
 
 Scrivi in italiano naturale,
 contemporaneo e credibile.
-
-==============================
-FILE DEL PERSONAGGIO
-==============================
-
-I file completi vengono forniti
-nel campo DATI_PERSONAGGIO
-del messaggio successivo.
-
-==============================
-RICORDI PRECEDENTI
-==============================
-
-I ricordi vengono forniti
-nel campo RICORDI_PRECEDENTI
-del messaggio successivo.
 """
 
 
 # ============================================================
-# CREA RISPOSTA DEL PERSONAGGIO
+# RISPOSTA PERSONAGGIO
 # ============================================================
 
 def answer_as_character(
@@ -1197,50 +1405,57 @@ def answer_as_character(
     scene
 ):
 
-    character_sources = (
-        load_character_sources(
-            character
-        )
+    sources = load_character_sources(
+        character
     )
 
-    previous_memories = (
-        get_previous_memories(
-            scene["id"],
-            character
-        )
+    memories = get_previous_memories(
+        scene["id"],
+        character
     )
 
-    data = {
+    raw_response = query_openai(
 
-        "PERSONAGGIO":
-            character,
-
-        "SCENA":
-            scene["title"],
-
-        "DATI_PERSONAGGIO":
-            character_sources,
-
-        "RICORDI_PRECEDENTI":
-            previous_memories,
-
-        "CONVERSAZIONE_CORRENTE":
-            scene[
-                "messages"
-            ][character]
-    }
-
-    return query_openai(
         character_prompt(
             character,
             scene
         ),
-        data
+
+        {
+            "PERSONAGGIO":
+                character,
+
+            "SCENA":
+                scene["title"],
+
+            "DATI_PERSONAGGIO":
+                sources,
+
+            "RICORDI_PRECEDENTI":
+                memories,
+
+            "CONVERSAZIONE_CORRENTE":
+                scene[
+                    "messages"
+                ][character],
+
+            "ISTRUZIONE_FINALE":
+                (
+                    "Rispondi soltanto come "
+                    + character
+                    + ". Mostra esclusivamente "
+                    "ciò che dici o fai."
+                )
+        }
+    )
+
+    return clean_character_response(
+        raw_response
     )
 
 
 # ============================================================
-# CREA RICORDO SCENA
+# CREA RICORDO
 # ============================================================
 
 def create_scene_memory(
@@ -1251,10 +1466,8 @@ def create_scene_memory(
 
     books = load_writer_books()
 
-    character_sources = (
-        load_character_sources(
-            pov
-        )
+    sources = load_character_sources(
+        pov
     )
 
     previous_memories = (
@@ -1265,67 +1478,50 @@ def create_scene_memory(
     )
 
     instructions = """
-Sei l'agente scrittore del romanzo
-Turing Hotel.
+Sei l'agente scrittore
+del romanzo Turing Hotel.
 
-Devi creare il RICORDO DELLA SCENA
-dal punto di vista del personaggio.
+Devi creare il RICORDO
+di ciò che il personaggio
+ha vissuto nella scena.
 
-ATTENZIONE:
+Il ricordo non è
+un riassunto tecnico.
 
-puoi utilizzare soltanto
-le informazioni fornite nei dati.
+È memoria autobiografica.
+
+Puoi usare soltanto
+le informazioni fornite.
+
+Non aggiungere fatti.
 
 Non aggiungere eventi.
-Non aggiungere relazioni.
-Non aggiungere motivazioni.
-Non aggiungere informazioni
-che il personaggio non possiede.
 
-Il ricordo NON è un riassunto tecnico.
-
-È una memoria narrativa persistente.
+Non trasformare ipotesi
+in certezze.
 
 Scrivi in prima persona.
 
-Conserva soprattutto:
+Conserva ciò che può
+avere conseguenze future:
 
-- cosa è successo;
-- persone incontrate;
-- parole importanti;
-- azioni;
+- eventi;
+- persone;
 - emozioni;
 - dubbi;
 - desideri;
 - paure;
+- promesse;
 - conflitti;
 - cambiamenti nei rapporti;
-- promesse;
-- decisioni;
-- dettagli che potrebbero
-  influenzare il personaggio in futuro.
+- decisioni.
 
-Se qualcosa è ambiguo,
-mantieni l'ambiguità.
+I libri servono soltanto
+come riferimento
+per ritmo e tecnica narrativa.
 
-Se il personaggio non sa qualcosa,
-non trasformarla in certezza.
-
-I LIBRI DI RIFERIMENTO
-servono soltanto per:
-
-- ritmo;
-- atmosfera;
-- densità narrativa;
-- costruzione della memoria.
-
-NON devi copiare frasi.
-NON devi citare gli autori.
-NON devi imitare letteralmente
-una voce riconoscibile.
-
-Il risultato deve sembrare
-un autentico ricordo personale.
+Non copiarli.
+Non citarli.
 """
 
     data = {
@@ -1337,12 +1533,12 @@ un autentico ricordo personale.
             scene["title"],
 
         "DATI_PERSONAGGIO":
-            character_sources,
+            sources,
 
         "RICORDI_PRECEDENTI":
             previous_memories,
 
-        "CONVERSAZIONE_SCENA":
+        "CONVERSAZIONE":
             scene[
                 "messages"
             ][pov],
@@ -1350,7 +1546,7 @@ un autentico ricordo personale.
         "EVENTO_AGGIUNTIVO":
             extra_event,
 
-        "LIBRI_RIFERIMENTO":
+        "RIFERIMENTI":
             books
     }
 
@@ -1379,15 +1575,20 @@ VIDEO_EXTENSIONS = {
 }
 
 
-def character_videos(character):
+def character_videos(
+    character
+):
 
     character = character.lower()
 
     results = []
 
     patterns = [
+
         rf"^{character}\.video(\d+)\.mp4$",
+
         rf"^{character}\.video\.(\d+)\.mp4$",
+
         rf"^{character}_video(\d+)\.mp4$"
     ]
 
@@ -1431,13 +1632,8 @@ def find_scene_assets(
         if not path.is_file():
             continue
 
-        filename = (
-            path.name.lower()
-        )
-
-        suffix = (
-            path.suffix.lower()
-        )
+        filename = path.name.lower()
+        suffix = path.suffix.lower()
 
         if media_type == "image":
 
@@ -1452,34 +1648,41 @@ def find_scene_assets(
         if scene_id == "hall":
 
             patterns = [
+
                 r"^hall\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
+
                 r"^hall\.video\d+\.(mp4|mov|webm|m4v)$",
-                rf"^hall\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
-                rf"^hall\.{pov}\.video\d+\.(mp4|mov|webm|m4v)$"
+
+                rf"^hall\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
             ]
 
         elif scene_id == "funerale":
 
             patterns = [
+
                 rf"^funerale\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
             ]
 
         elif scene_id == "matrimonio":
 
             patterns = [
+
                 rf"^matrimonio\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
             ]
 
         elif scene_id == "nascite":
 
             patterns = [
+
                 rf"^nascite\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
+
                 rf"^reparto\.nascite\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
             ]
 
         else:
 
             patterns = [
+
                 rf"^ritorno\.{pov}\.\d+\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$"
             ]
 
@@ -1522,10 +1725,8 @@ def page_entrance():
 
     st.write("")
 
-    col1, col2, col3 = (
-        st.columns(
-            [2, 1.4, 2]
-        )
+    col1, col2, col3 = st.columns(
+        [2, 1.4, 2]
     )
 
     with col2:
@@ -1548,10 +1749,8 @@ def page_entrance():
 
 def page_characters():
 
-    col_noa, gap, col_ada = (
-        st.columns(
-            [1, .08, 1]
-        )
+    col_noa, gap, col_ada = st.columns(
+        [1, .08, 1]
     )
 
     with col_noa:
@@ -1626,7 +1825,7 @@ def page_characters():
 
 
 # ============================================================
-# CANCELLA CONVERSAZIONE
+# RESET
 # ============================================================
 
 def reset_scene_chat(
@@ -1642,7 +1841,9 @@ def reset_scene_chat(
         "diary"
     ][pov] = ""
 
-    if scene["id"] == "ritorno":
+    if scene[
+        "id"
+    ] == "ritorno":
 
         scene[
             "decision"
@@ -1670,6 +1871,7 @@ def render_chat(
             message,
             dict
         ):
+
             continue
 
         speaker = message.get(
@@ -1696,10 +1898,8 @@ def render_chat(
                 text
             )
 
-    clear_col, blank = (
-        st.columns(
-            [1.3, 3]
-        )
+    clear_col, blank = st.columns(
+        [1.3, 3]
     )
 
     with clear_col:
@@ -1761,11 +1961,9 @@ def render_chat(
             f"{pov} sta reagendo..."
         ):
 
-            reply = (
-                answer_as_character(
-                    pov,
-                    scene
-                )
+            reply = answer_as_character(
+                pov,
+                scene
             )
 
         messages.append({
@@ -1820,7 +2018,7 @@ def render_photo_gallery(
 
 
 # ============================================================
-# CREA RICORDO BUTTON
+# RICORDO
 # ============================================================
 
 def render_memory_button(
@@ -1856,8 +2054,7 @@ def render_memory_button(
         else:
 
             with st.spinner(
-                "L'agente scrittore "
-                "sta creando il ricordo..."
+                "Creazione del ricordo..."
             ):
 
                 scene[
@@ -1881,8 +2078,7 @@ def render_memory_button(
     if memory:
 
         with st.expander(
-            "RICORDO DELLA SCENA",
-            expanded=False
+            "RICORDO DELLA SCENA"
         ):
 
             st.markdown(
@@ -1894,7 +2090,7 @@ def render_memory_button(
 
 
 # ============================================================
-# SCENA STANDARD
+# SCENA
 # ============================================================
 
 def render_standard_scene(
@@ -1925,8 +2121,6 @@ def render_standard_scene(
         unsafe_allow_html=True
     )
 
-    # VIDEO SOPRA
-
     videos = find_scene_assets(
         scene["id"],
         pov,
@@ -1939,14 +2133,10 @@ def render_standard_scene(
             str(video)
         )
 
-    # CHAT
-
     render_chat(
         scene,
         pov
     )
-
-    # FOTO SOTTO
 
     images = find_scene_assets(
         scene["id"],
@@ -1961,8 +2151,6 @@ def render_standard_scene(
         render_photo_gallery(
             images
         )
-
-    # RICORDO
 
     render_memory_button(
         scene,
@@ -1980,8 +2168,12 @@ def render_return():
 
     scene = next(
         scene
-        for scene in state["scenes"]
-        if scene["id"] == "ritorno"
+        for scene in state[
+            "scenes"
+        ]
+        if scene[
+            "id"
+        ] == "ritorno"
     )
 
     st.markdown(
@@ -2017,23 +2209,18 @@ def render_return():
             str(video)
         )
 
-    memories = (
-        get_previous_memories(
-            "ritorno",
-            pov
-        )
+    memories = get_previous_memories(
+        "ritorno",
+        pov
     )
 
     st.markdown(
         """
 <div class="return-box">
 
-Nel ritorno l'autore non decide
-come la protagonista deve reagire.
-
-La protagonista dispone soltanto
-dei propri dati e dei ricordi
-che ha costruito nelle scene precedenti.
+Nel ritorno il personaggio
+decide sulla base di ciò
+che ha realmente vissuto.
 
 </div>
 """,
@@ -2053,15 +2240,10 @@ che ha costruito nelle scene precedenti.
                 )
 
                 st.write(
-                    memory["ricordo"]
+                    memory[
+                        "ricordo"
+                    ]
                 )
-
-    else:
-
-        st.warning(
-            "Non esistono ancora "
-            "ricordi delle scene precedenti."
-        )
 
     if st.button(
         f"LASCIA DECIDERE {pov.upper()}",
@@ -2071,19 +2253,18 @@ che ha costruito nelle scene precedenti.
         if not memories:
 
             st.warning(
-                "Il personaggio non ha "
-                "ancora ricordi sufficienti."
+                "Non esistono ancora "
+                "ricordi sufficienti."
             )
 
         else:
 
-            sources = (
-                load_character_sources(
-                    pov
-                )
+            sources = load_character_sources(
+                pov
             )
 
-            instructions = (
+            raw_decision = query_openai(
+
                 character_prompt(
                     pov,
                     scene
@@ -2091,76 +2272,44 @@ che ha costruito nelle scene precedenti.
                 +
                 """
 
-==============================
-IL RITORNO
-==============================
+Questa è la scena del ritorno.
 
-Ora devi prendere autonomamente
-una decisione.
+Decidi autonomamente
+cosa fai.
 
-Puoi utilizzare SOLTANTO:
+Usa soltanto
+i dati e i ricordi disponibili.
 
-- i tuoi file;
-- il tuo profilo;
-- i tuoi ricordi;
-- ciò che hai vissuto.
+Non inventare fatti.
 
-Non inventare nuovi fatti
-per giustificare la decisione.
+Non spiegare
+come sei arrivata alla decisione.
 
-Se una cosa non la sai,
-non usarla come certezza.
+Non produrre JSON.
 
-Non cercare il finale migliore.
+Mostra soltanto
+ciò che fai o dici.
+""",
 
-Non cercare il finale più drammatico.
+                {
+                    "DATI_PERSONAGGIO":
+                        sources,
 
-Non cercare di capire
-cosa vuole l'autore.
+                    "RICORDI":
+                        memories,
 
-Decidi come questo personaggio
-deciderebbe realmente
-in base alla propria esperienza.
-
-Puoi:
-
-- parlare;
-- agire;
-- partire;
-- restare;
-- rifiutare;
-- aspettare;
-- non scegliere;
-- compiere un'azione irreversibile.
-
-Scrivi dal punto di vista
-del personaggio.
-"""
+                    "SCENA":
+                        "Il ritorno"
+                }
             )
 
-            with st.spinner(
-                f"{pov} sta ricordando..."
-            ):
-
-                decision = query_openai(
-
-                    instructions,
-
-                    {
-                        "DATI_PERSONAGGIO":
-                            sources,
-
-                        "RICORDI":
-                            memories,
-
-                        "SCENA":
-                            "Il ritorno"
-                    }
+            scene[
+                "decision"
+            ][pov] = (
+                clean_character_response(
+                    raw_decision
                 )
-
-                scene[
-                    "decision"
-                ][pov] = decision
+            )
 
             save_state()
 
@@ -2195,12 +2344,10 @@ del personaggio.
             images
         )
 
-    # ANCHE IL RITORNO HA IL SUO RICORDO
-
     render_memory_button(
         scene,
         pov,
-        extra_event=decision
+        decision
     )
 
 
@@ -2229,6 +2376,7 @@ def page_story():
     ]
 
     titles = {
+
         "hall":
             "La Hall",
 
@@ -2260,11 +2408,13 @@ def page_story():
         len(order) - 1
     )
 
-    st.session_state.scene_index = index
+    st.session_state.scene_index = (
+        index
+    )
 
-    scene_id = order[index]
-
-    # SIDEBAR
+    scene_id = order[
+        index
+    ]
 
     st.sidebar.markdown(
         f"## {pov}"
@@ -2296,7 +2446,8 @@ def page_story():
         )
 
         if st.sidebar.button(
-            prefix + titles[sid],
+            prefix
+            + titles[sid],
             key=f"nav_{sid}"
         ):
 
@@ -2305,9 +2456,6 @@ def page_story():
             st.rerun()
 
     st.sidebar.markdown("---")
-
-    # permette di verificare
-    # quali file sta leggendo il personaggio
 
     with st.sidebar.expander(
         "DATI AGENTE"
@@ -2322,8 +2470,7 @@ def page_story():
         if not sources:
 
             st.caption(
-                "Nessun file trovato "
-                "nella cartella characters."
+                "Nessun file personaggio trovato."
             )
 
         for source in sources:
@@ -2352,8 +2499,6 @@ def page_story():
 
         st.rerun()
 
-    # SCENA
-
     if scene_id == "ritorno":
 
         render_return()
@@ -2366,8 +2511,6 @@ def page_story():
             ],
             index
         )
-
-    # NAVIGAZIONE
 
     st.markdown("---")
 
@@ -2391,7 +2534,9 @@ def page_story():
 
     with next_col:
 
-        if index < len(order) - 1:
+        if index < len(
+            order
+        ) - 1:
 
             if st.button(
                 "SUCCESSIVA →"
