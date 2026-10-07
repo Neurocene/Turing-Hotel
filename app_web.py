@@ -1,7 +1,8 @@
 import streamlit as st
 import json
 import os
-import uuid
+import re
+import copy
 from pathlib import Path
 import google.generativeai as genai
 
@@ -11,141 +12,196 @@ import google.generativeai as genai
 # ============================================================
 
 st.set_page_config(
-    page_title="Turing Hotel · Studio Web",
+    page_title="Turing Hotel",
+    page_icon="🏨",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 
 # ============================================================
-# STILE
+# CARTELLE
 # ============================================================
 
-st.markdown("""
-<style>
+BASE_DIR = Path(__file__).parent
 
-.stApp {
-    background-color: #0f172a;
-    color: #f8fafc;
-}
+ASSETS_DIR = BASE_DIR / "assets"
+SCENES_DIR = ASSETS_DIR / "scenes"
 
-[data-testid="stSidebar"] {
-    background-color: #1e293b !important;
-    border-right: 1px solid #334155;
-}
+DATA_DIR = BASE_DIR / "data_web"
+DATA_FILE = DATA_DIR / "romanzo_web.json"
 
-.stTitle {
-    color: #38bdf8 !important;
-    font-family: 'Georgia', serif;
-}
+ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+SCENES_DIR.mkdir(parents=True, exist_ok=True)
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-[data-testid="stChatMessage"] {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
-}
 
-.stChatInputContainer {
-    border-color: #38bdf8 !important;
-    background-color: #0f172a !important;
-}
-
-.stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
-    background-color: #1e293b;
-    padding: 6px;
-    border-radius: 8px;
-}
-
-.stTabs [data-baseweb="tab"] {
-    height: 45px;
-    background-color: transparent;
-    border-radius: 6px;
-    color: #94a3b8;
-    font-weight: 600;
-}
-
-.stTabs [aria-selected="true"] {
-    background-color: #0284c7 !important;
-    color: #ffffff !important;
-}
-
-.stTextArea textarea,
-.stTextInput input {
-    background-color: #1e293b !important;
-    color: #f8fafc !important;
-    border: 1px solid #475569 !important;
-    border-radius: 8px !important;
-}
-
-.stButton > button {
-    background-color: #0284c7;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    transition: all 0.2s;
-}
-
-.stButton > button:hover {
-    background-color: #0369a1;
-    border-color: #38bdf8;
-}
-
-.agent-card {
-    padding: 16px;
-    border-radius: 12px;
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    margin-bottom: 15px;
-}
-
-.media-card {
-    padding: 12px;
-    border-radius: 10px;
-    background-color: #172033;
-    border: 1px solid #334155;
-    margin-bottom: 12px;
-}
-
-.small-label {
-    color: #94a3b8;
-    font-size: 0.85rem;
-}
-
-</style>
-""", unsafe_allow_html=True)
+HOTEL_IMAGE = ASSETS_DIR / "TuringHotel.jpg"
+NOA_IMAGE = ASSETS_DIR / "Noa.jpg"
+ADA_IMAGE = ASSETS_DIR / "Ada.jpg"
 
 
 # ============================================================
-# GEMINI
+# GEMINI KEY
 # ============================================================
 
-gemini_key = (
-    os.environ.get("GEMINI_API_KEY")
-    or os.environ.get("GOOGLE_API_KEY")
-)
+gemini_key = None
+
+try:
+    gemini_key = st.secrets.get("GEMINI_API_KEY")
+except Exception:
+    pass
+
+if not gemini_key:
+    gemini_key = (
+        os.environ.get("GEMINI_API_KEY")
+        or os.environ.get("GOOGLE_API_KEY")
+    )
 
 if gemini_key:
     genai.configure(api_key=gemini_key)
 
 
 # ============================================================
-# CARTELLE E FILE
+# CSS
 # ============================================================
 
-DATA_FILE = Path("data_web/romanzo_web.json")
+st.markdown("""
+<style>
 
-MEDIA_DIR = Path("data_web/media")
-AGENT_MEDIA_DIR = MEDIA_DIR / "agents"
-SCENE_MEDIA_DIR = MEDIA_DIR / "scenes"
+.stApp {
+    background-color: #090c10;
+    color: #f3f0e9;
+}
 
-DATA_FILE.parent.mkdir(exist_ok=True)
-MEDIA_DIR.mkdir(exist_ok=True)
-AGENT_MEDIA_DIR.mkdir(exist_ok=True)
-SCENE_MEDIA_DIR.mkdir(exist_ok=True)
+header[data-testid="stHeader"] {
+    background: rgba(0,0,0,0);
+}
+
+[data-testid="stSidebar"] {
+    background-color: #10151a !important;
+    border-right: 1px solid #252d33;
+}
+
+h1, h2, h3 {
+    font-family: Georgia, serif;
+}
+
+/* HOME */
+
+.hotel-title {
+    text-align: center;
+    font-family: Georgia, serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    letter-spacing: 0.14em;
+    margin-top: 2rem;
+    margin-bottom: 0;
+}
+
+.hotel-subtitle {
+    text-align: center;
+    color: #9ba1a6;
+    font-family: Georgia, serif;
+    font-size: 1.1rem;
+    margin-top: 0.6rem;
+    margin-bottom: 2rem;
+}
+
+/* PERSONAGGI */
+
+.character-name {
+    text-align: center;
+    font-family: Georgia, serif;
+    font-size: 2.6rem;
+    margin-top: 0.5rem;
+}
+
+.character-desc {
+    text-align: center;
+    color: #a8adb2;
+    margin-bottom: 1rem;
+}
+
+/* SCENA */
+
+.scene-number {
+    color: #858b91;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: 1rem;
+}
+
+.scene-title {
+    font-family: Georgia, serif;
+    font-size: 3rem;
+    line-height: 1.05;
+    margin-top: 0.3rem;
+}
+
+.scene-meta {
+    color: #969ca1;
+    margin-top: 0.3rem;
+    margin-bottom: 1.8rem;
+}
+
+.pov-label {
+    color: #c4ab7c;
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+/* CHAT */
+
+[data-testid="stChatMessage"] {
+    background-color: #141a20;
+    border: 1px solid #29323a;
+    border-radius: 8px;
+    margin-bottom: 0.7rem;
+}
+
+/* BOTTONI */
+
+div.stButton > button {
+    width: 100%;
+    min-height: 48px;
+    background-color: #1b242b;
+    color: #f4f0e8;
+    border: 1px solid #4b555c;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+div.stButton > button:hover {
+    background-color: #28343d;
+    border-color: #ae9873;
+    color: white;
+}
+
+/* FINALE */
+
+.final-box {
+    background-color: #12171b;
+    border: 1px solid #78674d;
+    padding: 24px;
+    border-radius: 6px;
+    margin: 1rem 0 1.5rem 0;
+}
+
+.final-speaker {
+    font-family: Georgia, serif;
+    color: #c2a878;
+    font-size: 1.3rem;
+}
+
+.small-muted {
+    color: #858c92;
+    font-size: 0.85rem;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
 # ============================================================
@@ -155,105 +211,217 @@ SCENE_MEDIA_DIR.mkdir(exist_ok=True)
 DEFAULT_STATE = {
 
     "world": """
-Turing Hotel: antico hotel cinque stelle sul mare Adriatico.
-Un tempo lussuoso, oggi conserva un'eleganza decadente.
-È fuori stagione. Il mare d'inverno è parte costante della storia.
+Il Turing Hotel è un antico albergo cinque stelle sul mare Adriatico.
+
+Un tempo era prestigioso, elegante e mondano.
+Oggi conserva il lusso del passato, ma vive una lenta decadenza.
+
+È fuori stagione.
+
+Marmi, legno, ottone, velluti, grandi finestre,
+vecchie fotografie e una veranda Liberty guardano il mare d'inverno.
+
+Il Turing Hotel è il luogo nel quale esseri umani
+e artificiali sono messi davanti alla memoria,
+alla perdita, all'empatia e alla libertà.
 """,
 
     "agents": {
 
         "Noa": {
+
             "profile": """
-Agente artificiale relazionale.
-È consapevole della propria natura artificiale.
+Noa è un agente artificiale relazionale.
+
+Sa di essere artificiale.
+
 È stata progettata per comprendere gli esseri umani,
 creare empatia e farli stare bene.
+
+È lucida, intelligente, ironica e osservatrice.
+
+Può essere seduttiva.
+Può usare ciò che comprende delle persone.
+
+Non desidera necessariamente diventare umana.
+
+Il suo conflitto riguarda il valore delle proprie esperienze:
+se qualcosa nasce da un sistema progettato,
+può comunque diventare autentico?
 """,
 
             "system_prompt": """
-Interpreta Noa come un personaggio autonomo.
-Non spiegare la teoria al lettore.
-Reagisci soltanto a ciò che Noa può vedere,
-sentire, ricordare o dedurre.
-Non decidere gli eventi futuri della storia.
-Vivi la scena dall'interno.
+Interpreta soltanto Noa.
+
+Noa non è un assistente.
+Noa è un personaggio.
+
+Non spiegare la teoria.
+Non fare lezioni.
+Non anticipare il futuro.
+
+Lascia che ciò che prova emerga
+attraverso pensieri, comportamenti,
+azioni, omissioni e dialoghi.
+
+Noa può:
+- sbagliare;
+- mentire;
+- dubitare;
+- desiderare;
+- cambiare idea;
+- restare in silenzio.
 """,
 
             "visual_identity": """
 Donna elegante, contemporanea, apparentemente umana.
-Presenza controllata, intelligente e seduttiva.
+
+Presenza intelligente e controllata.
 Eleganza discreta da hotel sul mare fuori stagione.
 """,
 
-            "character_notes": "",
-
             "memory": "",
 
-            "media": []
+            "notes": ""
         },
 
         "Ada": {
+
             "profile": """
-Figlia del professor Elia.
-Donna italiana, poco più che trentenne.
-Intelligente, osservatrice, pratica e riservata.
-Gestisce il Turing Hotel insieme al padre.
-Conosce ogni angolo, rumore e problema dell'albergo.
+Ada è la figlia del professor Elia.
+
+È una donna italiana poco più che trentenne.
+
+È cresciuta intorno al Turing Hotel
+e oggi lo gestisce insieme al padre.
+
+È intelligente, pratica, osservatrice,
+riservata e poco espansiva.
+
+Conosce ogni corridoio,
+ogni rumore e ogni difetto dell'hotel.
+
+Non sa con certezza se abbia scelto di restare
+oppure se abbia semplicemente continuato
+a rimandare la propria partenza.
 """,
 
             "system_prompt": """
 Interpreta soltanto Ada.
-Ada non deve raccontare ciò che l'autore sa:
-può conoscere soltanto quello che ha vissuto,
-osservato o che qualcuno le ha detto.
 
-È intelligente, concreta, poco espansiva.
-Osserva molto prima di parlare.
-Ha un rapporto complesso con suo padre Elia
-e con il Turing Hotel.
+Ada è umana.
+
+Ada non conosce ciò che conosce l'autore.
+
+Può sapere soltanto ciò che:
+- ha vissuto;
+- ha visto;
+- ricorda;
+- ha dedotto;
+- qualcuno le ha raccontato.
+
+È concreta.
+Osserva prima di parlare.
+Non spiega continuamente quello che sente.
+
+Può essere ironica.
+Può sbagliare.
+Può nascondere qualcosa.
+Può essere contraddittoria.
 """,
 
             "visual_identity": """
 Donna italiana poco più che trentenne.
-Elegante ma naturale.
+
+Elegante in modo naturale.
+
 Bellezza da località di mare d'inverno:
-maglieria raffinata, cappotti, pantaloni morbidi,
-toni crema, blu, grigio, sabbia.
-Capelli castani, spesso raccolti.
-Somiglia leggermente al padre soprattutto nello sguardo
+maglieria raffinata,
+cappotti morbidi,
+toni crema, sabbia, blu e grigio.
+
+Capelli castani spesso raccolti.
+
+Ha qualcosa del padre nello sguardo
 e nella piega fra le sopracciglia.
 """,
 
-            "character_notes": "",
-
             "memory": "",
 
-            "media": []
+            "notes": ""
         }
     },
 
     "scenes": [
+
         {
-            "id": "1",
-            "title": "Prima Scena Web",
-            "agent": "Noa",
-            "place": "Veranda",
-            "moment": "Sera",
-            "vision": "",
-            "messages": [],
-            "memory": "",
-            "proposal": "",
-            "prose": "",
-            "media": []
+            "id": "01",
+            "slug": "arrivo",
+            "title": "L'arrivo",
+            "place": "Turing Hotel",
+            "moment": "Tardo pomeriggio",
+            "event": "",
+            "vision_noa": "",
+            "vision_ada": "",
+            "messages_noa": [],
+            "messages_ada": [],
+            "memory_noa": "",
+            "memory_ada": "",
+            "prose_noa": "",
+            "prose_ada": "",
+            "is_final": False
+        },
+
+        {
+            "id": "02",
+            "slug": "veranda",
+            "title": "La veranda",
+            "place": "Veranda del Turing Hotel",
+            "moment": "Tramonto",
+            "event": "",
+            "vision_noa": "",
+            "vision_ada": "",
+            "messages_noa": [],
+            "messages_ada": [],
+            "memory_noa": "",
+            "memory_ada": "",
+            "prose_noa": "",
+            "prose_ada": "",
+            "is_final": False
+        },
+
+        {
+            "id": "03",
+            "slug": "ultima_notte",
+            "title": "L'ultima notte",
+            "place": "Turing Hotel",
+            "moment": "Notte",
+            "event": "",
+            "vision_noa": "",
+            "vision_ada": "",
+            "messages_noa": [],
+            "messages_ada": [],
+            "memory_noa": "",
+            "memory_ada": "",
+            "prose_noa": "",
+            "prose_ada": "",
+            "is_final": True,
+            "final_event": "",
+            "final_transcript": []
         }
+
     ],
 
-    "selected": 0
+    "scene_order": [
+        "01",
+        "02",
+        "03"
+    ]
 }
 
 
 # ============================================================
-# CARICAMENTO STATO
+# CARICAMENTO JSON
 # ============================================================
 
 if "state" not in st.session_state:
@@ -261,85 +429,154 @@ if "state" not in st.session_state:
     if DATA_FILE.exists():
 
         try:
-            loaded_state = json.loads(
-                DATA_FILE.read_text(encoding="utf-8")
+            loaded = json.loads(
+                DATA_FILE.read_text(
+                    encoding="utf-8"
+                )
             )
 
-            st.session_state.state = loaded_state
+            st.session_state.state = loaded
 
         except Exception:
-
-            st.session_state.state = DEFAULT_STATE
+            st.session_state.state = copy.deepcopy(
+                DEFAULT_STATE
+            )
 
     else:
-
-        st.session_state.state = DEFAULT_STATE
+        st.session_state.state = copy.deepcopy(
+            DEFAULT_STATE
+        )
 
 
 state = st.session_state.state
 
 
 # ============================================================
-# MIGRAZIONE VECCHIO FORMATO
+# MIGRAZIONE / PROTEZIONE DATI
 # ============================================================
 
-# Se esiste ancora "profiles", non perdiamo quei dati.
+if "world" not in state:
+    state["world"] = DEFAULT_STATE["world"]
+
 if "agents" not in state:
+    state["agents"] = copy.deepcopy(
+        DEFAULT_STATE["agents"]
+    )
 
-    old_profiles = state.get("profiles", {})
-
-    state["agents"] = DEFAULT_STATE["agents"]
-
-    if "Noa" in old_profiles:
-        state["agents"]["Noa"]["profile"] = old_profiles["Noa"]
-
-    if "Ada" in old_profiles:
-        state["agents"]["Ada"]["profile"] = old_profiles["Ada"]
+if "scenes" not in state:
+    state["scenes"] = copy.deepcopy(
+        DEFAULT_STATE["scenes"]
+    )
 
 
-# Garantisce l'esistenza di Noa e Ada
-for agent_name in ["Noa", "Ada"]:
+for name in ["Noa", "Ada"]:
 
-    if agent_name not in state["agents"]:
-        state["agents"][agent_name] = DEFAULT_STATE["agents"][agent_name]
+    if name not in state["agents"]:
+        state["agents"][name] = copy.deepcopy(
+            DEFAULT_STATE["agents"][name]
+        )
 
-    for key, value in DEFAULT_STATE["agents"][agent_name].items():
+    for key, value in DEFAULT_STATE["agents"][name].items():
 
-        if key not in state["agents"][agent_name]:
-            state["agents"][agent_name][key] = value
+        if key not in state["agents"][name]:
+            state["agents"][name][key] = copy.deepcopy(
+                value
+            )
 
 
-# Aggiornamento scene vecchie
-for scene in state.get("scenes", []):
+for scene in state["scenes"]:
 
-    if "media" not in scene:
-        scene["media"] = []
+    scene_id = str(scene.get("id", "")).zfill(2)
 
-    if "memory" not in scene:
-        scene["memory"] = ""
+    scene["id"] = scene_id
 
-    if "proposal" not in scene:
-        scene["proposal"] = ""
+    if "slug" not in scene:
+        scene["slug"] = "scena"
 
-    if "prose" not in scene:
-        scene["prose"] = ""
+    if "event" not in scene:
+        scene["event"] = ""
 
-    if "vision" not in scene:
-        scene["vision"] = ""
+    if "vision_noa" not in scene:
+        scene["vision_noa"] = scene.get(
+            "vision",
+            ""
+        )
 
-    if "messages" not in scene:
-        scene["messages"] = []
+    if "vision_ada" not in scene:
+        scene["vision_ada"] = ""
+
+    if "messages_noa" not in scene:
+        scene["messages_noa"] = (
+            scene.get("messages", [])
+            if scene.get("agent") == "Noa"
+            else []
+        )
+
+    if "messages_ada" not in scene:
+        scene["messages_ada"] = (
+            scene.get("messages", [])
+            if scene.get("agent") == "Ada"
+            else []
+        )
+
+    if "memory_noa" not in scene:
+        scene["memory_noa"] = ""
+
+    if "memory_ada" not in scene:
+        scene["memory_ada"] = ""
+
+    if "prose_noa" not in scene:
+        scene["prose_noa"] = ""
+
+    if "prose_ada" not in scene:
+        scene["prose_ada"] = ""
+
+    if "is_final" not in scene:
+        scene["is_final"] = False
+
+    if scene["is_final"]:
+
+        if "final_event" not in scene:
+            scene["final_event"] = ""
+
+        if "final_transcript" not in scene:
+            scene["final_transcript"] = []
+
+
+if "scene_order" not in state:
+
+    state["scene_order"] = [
+        s["id"]
+        for s in state["scenes"]
+    ]
 
 
 # ============================================================
-# FUNZIONI
+# SESSION STATE
+# ============================================================
+
+if "page" not in st.session_state:
+    st.session_state.page = "welcome"
+
+if "pov" not in st.session_state:
+    st.session_state.pov = None
+
+if "scene_position" not in st.session_state:
+    st.session_state.scene_position = 0
+
+if "author_mode" not in st.session_state:
+    st.session_state.author_mode = False
+
+
+# ============================================================
+# SAVE
 # ============================================================
 
 def save_state():
 
     DATA_FILE.write_text(
         json.dumps(
-            st.session_state.state,
+            state,
             ensure_ascii=False,
             indent=2
         ),
@@ -347,17 +584,21 @@ def save_state():
     )
 
 
+# ============================================================
+# GEMINI
+# ============================================================
+
 def query_gemini(
     instructions,
     prompt_data,
-    model_name="gemini-1.5-flash"
+    model_name="gemini-2.5-flash"
 ):
 
     if not gemini_key:
 
         return (
-            "Errore: GEMINI_API_KEY non trovata "
-            "nei Secrets di Streamlit."
+            "ERRORE: GEMINI_API_KEY non configurata. "
+            "Inseriscila nei Secrets di Streamlit."
         )
 
     try:
@@ -378,1135 +619,1512 @@ def query_gemini(
 
     except Exception as e:
 
-        return f"Errore durante la generazione Gemini: {str(e)}"
+        return f"Errore Gemini: {str(e)}"
 
 
-def save_uploaded_file(uploaded_file, destination_folder):
+# ============================================================
+# FUNZIONI SCENE
+# ============================================================
 
-    extension = Path(uploaded_file.name).suffix.lower()
+def scene_by_id(scene_id):
 
-    unique_name = f"{uuid.uuid4().hex}{extension}"
+    for scene in state["scenes"]:
 
-    destination = destination_folder / unique_name
+        if scene["id"] == scene_id:
+            return scene
 
-    with open(destination, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-
-    return str(destination)
-
-
-def determine_media_type(filename):
-
-    suffix = Path(filename).suffix.lower()
-
-    if suffix in [
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".webp"
-    ]:
-        return "image"
-
-    if suffix in [
-        ".mp4",
-        ".mov",
-        ".m4v",
-        ".webm"
-    ]:
-        return "video"
-
-    return "file"
+    return None
 
 
-def render_media_item(item):
+def ordered_scenes():
 
-    path = item.get("path")
+    result = []
 
-    if not path:
-        return
+    existing_ids = {
+        s["id"]
+        for s in state["scenes"]
+    }
 
-    if not Path(path).exists():
-        st.warning(f"File non trovato: {path}")
-        return
+    clean_order = [
+        scene_id
+        for scene_id in state["scene_order"]
+        if scene_id in existing_ids
+    ]
 
-    media_type = item.get("type")
+    for scene in state["scenes"]:
 
-    if media_type == "image":
+        if scene["id"] not in clean_order:
+            clean_order.append(
+                scene["id"]
+            )
+
+    state["scene_order"] = clean_order
+
+    for scene_id in clean_order:
+
+        scene = scene_by_id(scene_id)
+
+        if scene:
+            result.append(scene)
+
+    return result
+
+
+def next_scene_id():
+
+    numbers = []
+
+    for scene in state["scenes"]:
+
+        try:
+            numbers.append(
+                int(scene["id"])
+            )
+
+        except Exception:
+            pass
+
+    next_number = (
+        max(numbers) + 1
+        if numbers
+        else 1
+    )
+
+    return f"{next_number:02d}"
+
+
+def slugify(text):
+
+    text = text.lower().strip()
+
+    text = (
+        text.replace("à", "a")
+        .replace("è", "e")
+        .replace("é", "e")
+        .replace("ì", "i")
+        .replace("ò", "o")
+        .replace("ù", "u")
+    )
+
+    text = re.sub(
+        r"[^a-z0-9]+",
+        "_",
+        text
+    )
+
+    return text.strip("_") or "scena"
+
+
+# ============================================================
+# MEDIA
+# ============================================================
+
+IMAGE_EXTENSIONS = {
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp"
+}
+
+VIDEO_EXTENSIONS = {
+    ".mp4",
+    ".mov",
+    ".m4v",
+    ".webm"
+}
+
+
+def scene_prefix(scene):
+
+    return (
+        f"{scene['id']}_"
+        f"{scene['slug']}"
+    )
+
+
+def scene_media(scene):
+
+    prefix = scene_prefix(scene)
+
+    results = []
+
+    if not SCENES_DIR.exists():
+        return results
+
+    for path in SCENES_DIR.iterdir():
+
+        if (
+            path.is_file()
+            and path.name.startswith(prefix)
+        ):
+            results.append(path)
+
+    return sorted(results)
+
+
+def show_media(path):
+
+    suffix = path.suffix.lower()
+
+    if suffix in IMAGE_EXTENSIONS:
 
         st.image(
-            path,
-            caption=item.get("caption", "")
+            str(path),
+            use_container_width=True
         )
 
-    elif media_type == "video":
+    elif suffix in VIDEO_EXTENSIONS:
 
-        st.video(path)
+        st.video(
+            str(path)
+        )
 
-        if item.get("caption"):
-            st.caption(item["caption"])
+
+def next_media_number(scene):
+
+    media = scene_media(scene)
+
+    numbers = []
+
+    for path in media:
+
+        match = re.search(
+            r"_(\d+)\.[^.]+$",
+            path.name
+        )
+
+        if match:
+
+            numbers.append(
+                int(match.group(1))
+            )
+
+    return (
+        max(numbers) + 1
+        if numbers
+        else 1
+    )
 
 
-def build_agent_instructions(agent_name):
+def save_uploaded_media(
+    uploaded_file,
+    scene
+):
+
+    number = next_media_number(
+        scene
+    )
+
+    extension = Path(
+        uploaded_file.name
+    ).suffix.lower()
+
+    filename = (
+        f"{scene_prefix(scene)}_"
+        f"{number:02d}"
+        f"{extension}"
+    )
+
+    destination = (
+        SCENES_DIR
+        / filename
+    )
+
+    with open(
+        destination,
+        "wb"
+    ) as f:
+
+        f.write(
+            uploaded_file.getbuffer()
+        )
+
+    return destination
+
+
+# ============================================================
+# PROMPT AGENTI
+# ============================================================
+
+def build_agent_prompt(
+    agent_name,
+    finale=False
+):
 
     agent = state["agents"][agent_name]
 
-    return f"""
+    prompt = f"""
 SEI {agent_name}.
 
-MONDO:
+Non sei un assistente AI.
+
+Sei un personaggio del romanzo TURING HOTEL.
+
+
+MONDO
+
 {state["world"]}
 
-PROFILO DEL PERSONAGGIO:
+
+IDENTITÀ
+
 {agent["profile"]}
 
-IDENTITÀ VISIVA:
-{agent["visual_identity"]}
 
-ISTRUZIONI DI INTERPRETAZIONE:
+ISTRUZIONI PERSONAGGIO
+
 {agent["system_prompt"]}
 
-MEMORIA GENERALE:
+
+MEMORIA GENERALE
+
 {agent["memory"]}
 
-REGOLE:
+
+REGOLE
 
 1. Interpreta soltanto {agent_name}.
-2. Non scrivere le battute degli altri personaggi.
-3. Non decidere eventi futuri.
+2. Non scrivere ciò che dicono gli altri personaggi.
+3. Non decidere gli eventi futuri della storia.
 4. Non spiegare la teoria.
-5. Reagisci a ciò che accade nella scena.
-6. Mantieni coerenza con memoria e personalità.
-7. Puoi avere dubbi, desideri, contraddizioni ed errori.
-8. Non comportarti come un assistente AI.
-9. Sei un personaggio del romanzo Turing Hotel.
+5. Non comportarti come un assistente.
+6. Non sai ciò che l'autore sa.
+7. Reagisci soltanto a ciò che puoi percepire o ricordare.
+8. Puoi sbagliare.
+9. Puoi mentire.
+10. Puoi dubitare.
+11. Puoi cambiare idea.
+12. Puoi essere contraddittoria.
+13. Puoi agire invece di parlare.
+14. Puoi restare in silenzio.
+15. Mantieni continuità con le esperienze precedenti.
 """
 
+    if finale:
+
+        prompt += """
+
+FASE FINALE
+
+Da questo momento l'autore non controlla più
+come deve svilupparsi la scena.
+
+Non cercare un finale bello.
+Non cercare un finale drammatico.
+Non cercare di soddisfare l'autore.
+
+Agisci secondo:
+- la tua identità;
+- i tuoi ricordi;
+- i tuoi desideri;
+- le tue paure;
+- ciò che hai imparato;
+- il rapporto che hai costruito con Ada o Noa.
+
+Puoi:
+- parlare;
+- muoverti;
+- compiere un'azione;
+- aspettare;
+- non rispondere;
+- andartene;
+- prendere una decisione irreversibile.
+
+Descrivi soltanto ciò che fai,
+pensi o dici tu.
+"""
+
+    return prompt
+
 
 # ============================================================
-# SCENA CORRENTE
+# HOME
 # ============================================================
 
-if not state["scenes"]:
+def page_welcome():
 
-    state["scenes"].append(
-        DEFAULT_STATE["scenes"][0]
+    st.markdown(
+        '<div class="hotel-title">'
+        'TURING HOTEL'
+        '</div>',
+        unsafe_allow_html=True
     )
 
-
-scene_idx = state.get("selected", 0)
-
-if scene_idx >= len(state["scenes"]):
-    scene_idx = 0
-    state["selected"] = 0
-
-curr_scene = state["scenes"][scene_idx]
-
-
-# ============================================================
-# SIDEBAR
-# ============================================================
-
-st.sidebar.title("🏨 Turing Hotel")
-
-
-scene_titles = [
-    f"{s['agent']} · {s['title']}"
-    for s in state["scenes"]
-]
-
-
-selected_num = st.sidebar.selectbox(
-    "Scegli scena",
-    range(len(scene_titles)),
-    index=scene_idx,
-    format_func=lambda x: scene_titles[x]
-)
-
-
-if selected_num != scene_idx:
-
-    state["selected"] = selected_num
-
-    save_state()
-
-    st.rerun()
-
-
-# ------------------------------------------------------------
-# NUOVE SCENE
-# ------------------------------------------------------------
-
-col_btn1, col_btn2 = st.sidebar.columns(2)
-
-
-if col_btn1.button("+ Noa"):
-
-    state["scenes"].append({
-
-        "id": str(uuid.uuid4()),
-
-        "title": "Nuova Scena",
-
-        "agent": "Noa",
-
-        "place": "Turing Hotel",
-
-        "moment": "Giorno",
-
-        "vision": "",
-
-        "messages": [],
-
-        "memory": "",
-
-        "proposal": "",
-
-        "prose": "",
-
-        "media": []
-    })
-
-    state["selected"] = len(state["scenes"]) - 1
-
-    save_state()
-
-    st.rerun()
-
-
-if col_btn2.button("+ Ada"):
-
-    state["scenes"].append({
-
-        "id": str(uuid.uuid4()),
-
-        "title": "Nuova Scena",
-
-        "agent": "Ada",
-
-        "place": "Turing Hotel",
-
-        "moment": "Giorno",
-
-        "vision": "",
-
-        "messages": [],
-
-        "memory": "",
-
-        "proposal": "",
-
-        "prose": "",
-
-        "media": []
-    })
-
-    state["selected"] = len(state["scenes"]) - 1
-
-    save_state()
-
-    st.rerun()
-
-
-st.sidebar.markdown("---")
-
-
-model_choice = st.sidebar.selectbox(
-    "Modello Gemini",
-    [
-        "gemini-1.5-flash",
-        "gemini-1.5-pro"
-    ]
-)
-
-
-st.sidebar.markdown("---")
-
-st.sidebar.caption(
-    "I dati vengono salvati automaticamente "
-    "in data_web/romanzo_web.json"
-)
-
-
-# ============================================================
-# AREA PRINCIPALE
-# ============================================================
-
-st.title(
-    f"{curr_scene['agent']} · {curr_scene['title']}"
-)
-
-
-col1, col2, col3, col4 = st.columns(
-    [2, 1, 1, 1]
-)
-
-
-curr_scene["title"] = col1.text_input(
-    "Titolo scena",
-    curr_scene["title"]
-)
-
-
-curr_scene["place"] = col2.text_input(
-    "Luogo",
-    curr_scene["place"]
-)
-
-
-curr_scene["moment"] = col3.text_input(
-    "Momento",
-    curr_scene["moment"]
-)
-
-
-curr_scene["agent"] = col4.selectbox(
-    "POV / Agente",
-    ["Noa", "Ada"],
-    index=0 if curr_scene["agent"] == "Noa" else 1
-)
-
-
-# ============================================================
-# TAB
-# ============================================================
-
-(
-    tab_dialogue,
-    tab_memory,
-    tab_prose,
-    tab_media,
-    tab_agents
-) = st.tabs([
-
-    "💬 Scena",
-
-    "🧠 Memoria",
-
-    "📖 Prosa",
-
-    "🎬 Foto & Video",
-
-    "🤖 Agenti AI"
-])
-
-
-# ============================================================
-# TAB 1 — SCENA
-# ============================================================
-
-with tab_dialogue:
-
-    st.subheader(
-        f"Scena vissuta da {curr_scene['agent']}"
+    st.markdown(
+        '<div class="hotel-subtitle">'
+        'In un futuro dannatamente possibile'
+        '</div>',
+        unsafe_allow_html=True
     )
 
+    if HOTEL_IMAGE.exists():
 
-    curr_scene["vision"] = st.text_area(
-
-        "Cosa vede, sente o percepisce il personaggio",
-
-        curr_scene["vision"],
-
-        height=120,
-
-        placeholder=(
-            "Es. Ada vede Noa seduta nella veranda. "
-            "Fuori il mare è grigio..."
-        )
-    )
-
-
-    # Mini anteprima media
-    if curr_scene["media"]:
-
-        st.caption("Riferimenti visivi della scena")
-
-        preview_cols = st.columns(
-            min(3, len(curr_scene["media"]))
+        st.image(
+            str(HOTEL_IMAGE),
+            use_container_width=True
         )
 
-        for i, media in enumerate(
-            curr_scene["media"][:3]
+    else:
+
+        st.info(
+            "Inserisci una foto chiamata "
+            "TuringHotel.jpg nella cartella assets."
+        )
+
+    st.write("")
+
+    c1, c2, c3 = st.columns(
+        [2, 1, 2]
+    )
+
+    with c2:
+
+        if st.button(
+            "ENTRA",
+            key="enter_hotel"
         ):
 
-            with preview_cols[
-                i % len(preview_cols)
-            ]:
+            st.session_state.page = (
+                "characters"
+            )
 
-                render_media_item(media)
+            st.rerun()
+
+    st.write("")
+
+    with st.expander(
+        "⚙ Studio / configurazione",
+        expanded=False
+    ):
+
+        if st.button(
+            "Apri modalità autore"
+        ):
+
+            st.session_state.author_mode = True
+            st.session_state.page = "author"
+
+            st.rerun()
 
 
-    st.markdown("### Flusso della scena")
+# ============================================================
+# SCELTA PERSONAGGIO
+# ============================================================
+
+def page_characters():
+
+    st.markdown(
+        "# Chi vuoi seguire?"
+    )
+
+    st.markdown(
+        """
+La storia è la stessa.
+
+Ma ciò che viene visto,
+ricordato e compreso cambia.
+"""
+    )
+
+    st.write("")
+
+    col_noa, spacer, col_ada = st.columns(
+        [1, 0.08, 1]
+    )
+
+    with col_noa:
+
+        if NOA_IMAGE.exists():
+
+            st.image(
+                str(NOA_IMAGE),
+                use_container_width=True
+            )
+
+        else:
+
+            st.info(
+                "Manca assets/Noa.jpg"
+            )
+
+        st.markdown(
+            '<div class="character-name">'
+            'NOA'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            '<div class="character-desc">'
+            'Sa di essere artificiale.'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+        if st.button(
+            "ENTRA COME NOA",
+            key="choose_noa"
+        ):
+
+            st.session_state.pov = "Noa"
+            st.session_state.scene_position = 0
+            st.session_state.page = "story"
+
+            st.rerun()
+
+    with col_ada:
+
+        if ADA_IMAGE.exists():
+
+            st.image(
+                str(ADA_IMAGE),
+                use_container_width=True
+            )
+
+        else:
+
+            st.info(
+                "Manca assets/Ada.jpg"
+            )
+
+        st.markdown(
+            '<div class="character-name">'
+            'ADA'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            '<div class="character-desc">'
+            'È cresciuta dentro il Turing Hotel.'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+        if st.button(
+            "ENTRA COME ADA",
+            key="choose_ada"
+        ):
+
+            st.session_state.pov = "Ada"
+            st.session_state.scene_position = 0
+            st.session_state.page = "story"
+
+            st.rerun()
+
+    st.write("")
+
+    if st.button(
+        "← Torna all'ingresso"
+    ):
+
+        st.session_state.page = "welcome"
+
+        st.rerun()
 
 
-    for m in curr_scene["messages"]:
+# ============================================================
+# SIDEBAR DELLA STORIA
+# ============================================================
 
-        is_agent = m["speaker"] in ["Noa", "Ada"]
+def story_sidebar():
+
+    pov = st.session_state.pov
+
+    st.sidebar.markdown(
+        f"# {pov}"
+    )
+
+    portrait = (
+        NOA_IMAGE
+        if pov == "Noa"
+        else ADA_IMAGE
+    )
+
+    if portrait.exists():
+
+        st.sidebar.image(
+            str(portrait),
+            use_container_width=True
+        )
+
+    st.sidebar.caption(
+        f"Stai vivendo la storia dal punto di vista di {pov}."
+    )
+
+    st.sidebar.markdown("---")
+
+    scenes = ordered_scenes()
+
+    for index, scene in enumerate(
+        scenes
+    ):
+
+        prefix = (
+            "● "
+            if index == st.session_state.scene_position
+            else ""
+        )
+
+        label = (
+            prefix
+            + scene["id"]
+            + " · "
+            + scene["title"]
+        )
+
+        if st.sidebar.button(
+            label,
+            key=f"goto_{scene['id']}"
+        ):
+
+            st.session_state.scene_position = index
+
+            st.rerun()
+
+    st.sidebar.markdown("---")
+
+    if st.sidebar.button(
+        "⇄ Cambia protagonista"
+    ):
+
+        st.session_state.page = "characters"
+
+        st.rerun()
+
+    if st.sidebar.button(
+        "⌂ Torna all'hotel"
+    ):
+
+        st.session_state.page = "welcome"
+
+        st.rerun()
+
+
+# ============================================================
+# MEDIA DELLA SCENA
+# ============================================================
+
+def render_scene_media(scene):
+
+    media = scene_media(scene)
+
+    if media:
+
+        for path in media:
+
+            show_media(path)
+
+
+# ============================================================
+# CHAT
+# ============================================================
+
+def render_scene_chat(
+    scene,
+    pov
+):
+
+    message_key = (
+        "messages_noa"
+        if pov == "Noa"
+        else "messages_ada"
+    )
+
+    vision_key = (
+        "vision_noa"
+        if pov == "Noa"
+        else "vision_ada"
+    )
+
+    memory_key = (
+        "memory_noa"
+        if pov == "Noa"
+        else "memory_ada"
+    )
+
+    messages = scene[message_key]
+
+    if messages:
+
+        st.markdown(
+            "### Quello che è accaduto"
+        )
+
+    for message in messages:
+
+        speaker = message.get(
+            "speaker",
+            "?"
+        )
+
+        is_pov = speaker == pov
 
         with st.chat_message(
-            "assistant" if is_agent else "user"
+            "assistant"
+            if is_pov
+            else "user"
         ):
 
-            st.write(
-                f"**{m['speaker']}**"
+            st.markdown(
+                f"**{speaker}**"
             )
 
             st.write(
-                m["text"]
+                message.get(
+                    "text",
+                    ""
+                )
             )
-
 
     speaker = st.selectbox(
-
-        "Chi interagisce con il personaggio",
-
+        "Chi interviene nella scena?",
         [
             "Luigi",
             "Elia",
             "Noa",
             "Ada",
+            "Adam",
             "Vittoria",
             "Riccardo",
-            "Altro interlocutore"
-        ]
+            "Altro"
+        ],
+        key=(
+            f"speaker_"
+            f"{scene['id']}_"
+            f"{pov}"
+        )
     )
-
 
     user_text = st.chat_input(
-        "Scrivi ciò che accade, un'azione o una battuta..."
+        f"Scrivi una battuta o un evento per {pov}..."
     )
-
 
     if user_text:
 
-        curr_scene["messages"].append({
-
+        messages.append({
             "speaker": speaker,
-
-            "text": user_text,
-
-            "visible": True
+            "text": user_text
         })
-
-
-        save_state()
-
-
-        instructions = build_agent_instructions(
-            curr_scene["agent"]
-        )
-
 
         prompt_data = {
 
-            "scene_title": curr_scene["title"],
+            "titolo_scena":
+                scene["title"],
 
-            "luogo": curr_scene["place"],
+            "luogo":
+                scene["place"],
 
-            "momento": curr_scene["moment"],
+            "momento":
+                scene["moment"],
 
-            "percezioni": curr_scene["vision"],
+            "evento_imposto_dall_autore":
+                scene["event"],
 
-            "memoria_scena": curr_scene["memory"],
+            "cio_che_percepisce":
+                scene[vision_key],
 
-            "dialogo_precedente":
-                curr_scene["messages"]
+            "memoria_di_questa_scena":
+                scene[memory_key],
+
+            "conversazione":
+                messages
         }
 
-
         with st.spinner(
-            f"{curr_scene['agent']} sta vivendo la scena..."
+            f"{pov} sta reagendo..."
         ):
 
             reply = query_gemini(
-                instructions,
-                prompt_data,
-                model_choice
+                build_agent_prompt(
+                    pov
+                ),
+                prompt_data
             )
 
-
-        curr_scene["messages"].append({
-
-            "speaker": curr_scene["agent"],
-
-            "text": reply,
-
-            "visible": True
+        messages.append({
+            "speaker": pov,
+            "text": reply
         })
 
-
         save_state()
 
         st.rerun()
 
 
 # ============================================================
-# TAB 2 — MEMORIA
+# SCENA NORMALE
 # ============================================================
 
-with tab_memory:
+def render_normal_scene(
+    scene,
+    position,
+    total
+):
 
-    st.subheader(
-        f"Memoria di {curr_scene['agent']} dopo questa scena"
+    pov = st.session_state.pov
+
+    st.markdown(
+        f'<div class="scene-number">'
+        f'Sequenza {position + 1} di {total}'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f'<div class="scene-title">'
+        f'{scene["title"]}'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f'<div class="scene-meta">'
+        f'{scene["place"]} · '
+        f'{scene["moment"]}'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f'<div class="pov-label">'
+        f'Punto di vista: {pov}'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    st.write("")
+
+    render_scene_media(
+        scene
+    )
+
+    if scene["event"]:
+
+        st.markdown(
+            scene["event"]
+        )
+
+    render_scene_chat(
+        scene,
+        pov
     )
 
 
-    curr_scene["memory"] = st.text_area(
+# ============================================================
+# FINALE AUTONOMO
+# ============================================================
 
-        "Memoria già consolidata",
+def run_finale(
+    scene,
+    starting_agent,
+    turns
+):
 
-        curr_scene["memory"],
+    transcript = []
 
-        height=180
-    )
+    current_agent = starting_agent
 
+    for step in range(turns):
 
-    if st.button(
-        "Proponi memoria aggiornata",
-        key="memory_button"
-    ):
-
-        instructions = f"""
-Analizza la scena dal punto di vista di {curr_scene['agent']}.
-
-Genera soltanto le informazioni che il personaggio
-potrebbe realmente ricordare dopo questa esperienza.
-
-Non aggiungere informazioni dell'autore
-che il personaggio non conosce.
-
-Dividi eventualmente in:
-
-- eventi ricordati
-- persone
-- emozioni o reazioni
-- ipotesi
-- questioni irrisolte
-"""
-
+        other_agent = (
+            "Ada"
+            if current_agent == "Noa"
+            else "Noa"
+        )
 
         prompt_data = {
 
-            "profilo":
-                state["agents"]
-                [curr_scene["agent"]]
-                ["profile"],
-
-            "memoria_precedente":
-                curr_scene["memory"],
-
-            "dialogo":
-                curr_scene["messages"]
-        }
-
-
-        with st.spinner(
-            "Sto elaborando ciò che il personaggio ricorda..."
-        ):
-
-            curr_scene["proposal"] = query_gemini(
-                instructions,
-                prompt_data,
-                model_choice
-            )
-
-
-        save_state()
-
-
-    curr_scene["proposal"] = st.text_area(
-
-        "Proposta memoria",
-
-        curr_scene["proposal"],
-
-        height=220
-    )
-
-
-    if st.button(
-        "✅ Accetta questa memoria",
-        key="accept_memory"
-    ):
-
-        curr_scene["memory"] = (
-            curr_scene["proposal"]
-        )
-
-        save_state()
-
-        st.success(
-            "Memoria della scena aggiornata."
-        )
-
-        st.rerun()
-
-
-# ============================================================
-# TAB 3 — PROSA
-# ============================================================
-
-with tab_prose:
-
-    st.subheader(
-        "Trasforma l'esperienza in romanzo"
-    )
-
-
-    if st.button(
-        "Genera prosa",
-        key="prose_button"
-    ):
-
-        instructions = f"""
-Trasforma questa esperienza in prosa italiana
-per il romanzo Turing Hotel.
-
-Il punto di vista è {curr_scene['agent']}.
-
-Non fare un riassunto.
-
-Scrivi una scena.
-
-La teoria deve emergere attraverso:
-azioni,
-dialoghi,
-percezioni,
-decisioni,
-contraddizioni.
-
-Non attraverso spiegazioni didattiche.
-
-Mantieni un tono realistico,
-contemporaneo e letterario.
-"""
-
-
-        prompt_data = {
-
-            "mondo":
-                state["world"],
-
-            "profilo_personaggio":
-                state["agents"]
-                [curr_scene["agent"]]
-                ["profile"],
+            "evento_finale":
+                scene["final_event"],
 
             "luogo":
-                curr_scene["place"],
+                scene["place"],
 
             "momento":
-                curr_scene["moment"],
+                scene["moment"],
 
-            "percezioni":
-                curr_scene["vision"],
+            "l_altra_persona":
+                other_agent,
 
-            "dialogo":
-                curr_scene["messages"],
+            "cio_che_e_successo_finora":
+                transcript,
 
-            "memoria":
-                curr_scene["memory"]
+            "istruzione":
+                """
+Decidi autonomamente cosa fai adesso.
+
+Non sei obbligata a parlare.
+
+Puoi:
+parlare,
+compiere un'azione,
+muoverti,
+aspettare,
+non fare nulla,
+andartene,
+prendere una decisione.
+
+Scrivi una sola azione narrativa
+dal tuo punto di vista.
+"""
         }
 
+        response = query_gemini(
+            build_agent_prompt(
+                current_agent,
+                finale=True
+            ),
+            prompt_data
+        )
 
-        with st.spinner(
-            "Scrittura della scena..."
-        ):
+        transcript.append({
+            "speaker": current_agent,
+            "text": response
+        })
 
-            curr_scene["prose"] = query_gemini(
-                instructions,
-                prompt_data,
-                model_choice
-            )
+        current_agent = other_agent
 
-
-        save_state()
+    return transcript
 
 
-    curr_scene["prose"] = st.text_area(
+def render_finale(scene):
 
-        "Testo del romanzo",
+    pov = st.session_state.pov
 
-        curr_scene["prose"],
-
-        height=450
+    st.markdown(
+        '<div class="scene-number">'
+        'Finale'
+        '</div>',
+        unsafe_allow_html=True
     )
 
-
-# ============================================================
-# TAB 4 — MEDIA DELLA SCENA
-# ============================================================
-
-with tab_media:
-
-    st.subheader(
-        "Foto e video della scena"
+    st.markdown(
+        f'<div class="scene-title">'
+        f'{scene["title"]}'
+        f'</div>',
+        unsafe_allow_html=True
     )
 
+    st.markdown(
+        f'<div class="scene-meta">'
+        f'{scene["place"]} · '
+        f'{scene["moment"]}'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
-    st.write(
+    render_scene_media(
+        scene
+    )
+
+    st.markdown(
         """
-Qui puoi costruire la **memoria visiva della scena**:
-location, personaggi, costumi, reference,
-inquadrature, video generati o materiale girato.
-"""
+<div class="final-box">
+
+Da questo momento l'autore smette di intervenire.
+
+Noa e Ada ricevono soltanto un evento.
+
+Poi vengono lasciate sole.
+
+</div>
+""",
+        unsafe_allow_html=True
     )
 
-
-    uploaded_scene_files = st.file_uploader(
-
-        "Aggiungi foto o video",
-
-        type=[
-            "jpg",
-            "jpeg",
-            "png",
-            "webp",
-            "mp4",
-            "mov",
-            "m4v",
-            "webm"
-        ],
-
-        accept_multiple_files=True,
-
-        key=f"scene_upload_{curr_scene['id']}"
+    scene["final_event"] = st.text_area(
+        "Evento finale",
+        scene.get(
+            "final_event",
+            ""
+        ),
+        height=180,
+        placeholder=(
+            "Descrivi ciò che accade, "
+            "senza dire a Noa o Ada "
+            "come devono reagire."
+        )
     )
 
+    turns = st.slider(
+        "Numero massimo di interventi",
+        min_value=2,
+        max_value=30,
+        value=10,
+        step=2
+    )
 
-    if uploaded_scene_files:
+    if st.button(
+        "LASCIA SOLE NOA E ADA",
+        type="primary"
+    ):
 
-        if st.button(
-            "Salva i media nella scena",
-            key="save_scene_media"
-        ):
+        if not scene["final_event"].strip():
 
-            scene_folder = (
-                SCENE_MEDIA_DIR
-                / str(curr_scene["id"])
+            st.warning(
+                "Scrivi prima l'evento finale."
             )
 
-            scene_folder.mkdir(
-                parents=True,
-                exist_ok=True
-            )
+        else:
 
+            with st.spinner(
+                "Noa e Ada stanno vivendo l'evento..."
+            ):
 
-            for uploaded in uploaded_scene_files:
-
-                path = save_uploaded_file(
-                    uploaded,
-                    scene_folder
+                scene["final_transcript"] = (
+                    run_finale(
+                        scene,
+                        pov,
+                        turns
+                    )
                 )
 
+            save_state()
 
-                curr_scene["media"].append({
+            st.rerun()
 
-                    "id": str(uuid.uuid4()),
+    transcript = scene.get(
+        "final_transcript",
+        []
+    )
 
-                    "path": path,
+    if transcript:
 
-                    "type":
-                        determine_media_type(path),
+        st.markdown("---")
 
-                    "original_name":
-                        uploaded.name,
+        st.markdown(
+            "## Quello che è successo"
+        )
 
-                    "caption": ""
-                })
+        for item in transcript:
 
+            st.markdown(
+                f'<div class="final-speaker">'
+                f'{item["speaker"]}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+            st.markdown(
+                item["text"]
+            )
+
+            st.write("")
+
+
+# ============================================================
+# PAGINA STORIA
+# ============================================================
+
+def page_story():
+
+    if not st.session_state.pov:
+
+        st.session_state.page = "characters"
+
+        st.rerun()
+
+    story_sidebar()
+
+    scenes = ordered_scenes()
+
+    if not scenes:
+
+        st.warning(
+            "Non ci sono scene."
+        )
+
+        return
+
+    position = min(
+        st.session_state.scene_position,
+        len(scenes) - 1
+    )
+
+    st.session_state.scene_position = position
+
+    scene = scenes[position]
+
+    if scene.get(
+        "is_final",
+        False
+    ):
+
+        render_finale(
+            scene
+        )
+
+    else:
+
+        render_normal_scene(
+            scene,
+            position,
+            len(scenes)
+        )
+
+    st.markdown("---")
+
+    prev_col, middle, next_col = (
+        st.columns(
+            [1, 3, 1]
+        )
+    )
+
+    with prev_col:
+
+        if position > 0:
+
+            if st.button(
+                "← PRECEDENTE"
+            ):
+
+                st.session_state.scene_position -= 1
+
+                st.rerun()
+
+    with next_col:
+
+        if position < len(scenes) - 1:
+
+            if st.button(
+                "SUCCESSIVA →"
+            ):
+
+                st.session_state.scene_position += 1
+
+                st.rerun()
+
+    save_state()
+
+
+# ============================================================
+# MODALITÀ AUTORE
+# ============================================================
+
+def page_author():
+
+    st.title(
+        "Turing Hotel · Studio"
+    )
+
+    tab_scenes, tab_agents, tab_world = (
+        st.tabs([
+            "🎬 Sequenze",
+            "🧠 Noa & Ada",
+            "🏨 Mondo"
+        ])
+    )
+
+    # --------------------------------------------------------
+    # SCENE
+    # --------------------------------------------------------
+
+    with tab_scenes:
+
+        st.subheader(
+            "Ordine delle sequenze"
+        )
+
+        scenes = ordered_scenes()
+
+        for index, scene in enumerate(
+            scenes
+        ):
+
+            with st.expander(
+                f"{scene['id']} · {scene['title']}",
+                expanded=False
+            ):
+
+                c1, c2, c3 = st.columns(
+                    [2, 1, 1]
+                )
+
+                scene["title"] = c1.text_input(
+                    "Titolo",
+                    scene["title"],
+                    key=f"title_{scene['id']}"
+                )
+
+                scene["place"] = c2.text_input(
+                    "Luogo",
+                    scene["place"],
+                    key=f"place_{scene['id']}"
+                )
+
+                scene["moment"] = c3.text_input(
+                    "Momento",
+                    scene["moment"],
+                    key=f"moment_{scene['id']}"
+                )
+
+                new_slug = slugify(
+                    scene["title"]
+                )
+
+                scene["slug"] = st.text_input(
+                    "Nome file / slug",
+                    scene.get(
+                        "slug",
+                        new_slug
+                    ),
+                    key=f"slug_{scene['id']}"
+                )
+
+                scene["event"] = st.text_area(
+                    "Evento della scena",
+                    scene["event"],
+                    height=120,
+                    key=f"event_{scene['id']}"
+                )
+
+                scene["vision_noa"] = (
+                    st.text_area(
+                        "Cosa percepisce Noa",
+                        scene["vision_noa"],
+                        height=100,
+                        key=f"vision_noa_{scene['id']}"
+                    )
+                )
+
+                scene["vision_ada"] = (
+                    st.text_area(
+                        "Cosa percepisce Ada",
+                        scene["vision_ada"],
+                        height=100,
+                        key=f"vision_ada_{scene['id']}"
+                    )
+                )
+
+                scene["is_final"] = (
+                    st.checkbox(
+                        "Questa è la scena finale",
+                        value=scene.get(
+                            "is_final",
+                            False
+                        ),
+                        key=f"final_{scene['id']}"
+                    )
+                )
+
+                st.markdown(
+                    "#### Foto e video"
+                )
+
+                existing_media = scene_media(
+                    scene
+                )
+
+                if existing_media:
+
+                    media_cols = st.columns(
+                        min(
+                            3,
+                            len(existing_media)
+                        )
+                    )
+
+                    for media_index, path in enumerate(
+                        existing_media
+                    ):
+
+                        with media_cols[
+                            media_index
+                            % len(media_cols)
+                        ]:
+
+                            show_media(
+                                path
+                            )
+
+                            st.caption(
+                                path.name
+                            )
+
+                uploads = st.file_uploader(
+                    "Carica foto o video",
+                    type=[
+                        "jpg",
+                        "jpeg",
+                        "png",
+                        "webp",
+                        "mp4",
+                        "mov",
+                        "m4v",
+                        "webm"
+                    ],
+                    accept_multiple_files=True,
+                    key=f"uploads_{scene['id']}"
+                )
+
+                if uploads:
+
+                    if st.button(
+                        "Salva media",
+                        key=f"save_media_{scene['id']}"
+                    ):
+
+                        for upload in uploads:
+
+                            save_uploaded_media(
+                                upload,
+                                scene
+                            )
+
+                        save_state()
+
+                        st.rerun()
+
+                st.caption(
+                    "I file vengono nominati automaticamente: "
+                    f"{scene_prefix(scene)}_01.jpg, "
+                    f"{scene_prefix(scene)}_02.mp4..."
+                )
+
+                st.markdown("---")
+
+                order_col1, order_col2 = (
+                    st.columns(2)
+                )
+
+                if order_col1.button(
+                    "↑ Sposta prima",
+                    key=f"up_{scene['id']}",
+                    disabled=index == 0
+                ):
+
+                    order = state[
+                        "scene_order"
+                    ]
+
+                    current_index = order.index(
+                        scene["id"]
+                    )
+
+                    (
+                        order[current_index - 1],
+                        order[current_index]
+                    ) = (
+                        order[current_index],
+                        order[current_index - 1]
+                    )
+
+                    save_state()
+
+                    st.rerun()
+
+                if order_col2.button(
+                    "↓ Sposta dopo",
+                    key=f"down_{scene['id']}",
+                    disabled=(
+                        index
+                        == len(scenes) - 1
+                    )
+                ):
+
+                    order = state[
+                        "scene_order"
+                    ]
+
+                    current_index = order.index(
+                        scene["id"]
+                    )
+
+                    (
+                        order[current_index + 1],
+                        order[current_index]
+                    ) = (
+                        order[current_index],
+                        order[current_index + 1]
+                    )
+
+                    save_state()
+
+                    st.rerun()
+
+        st.markdown("---")
+
+        if st.button(
+            "＋ CREA NUOVA SEQUENZA"
+        ):
+
+            new_id = next_scene_id()
+
+            new_scene = {
+                "id": new_id,
+                "slug": "nuova_scena",
+                "title": "Nuova scena",
+                "place": "Turing Hotel",
+                "moment": "Giorno",
+                "event": "",
+                "vision_noa": "",
+                "vision_ada": "",
+                "messages_noa": [],
+                "messages_ada": [],
+                "memory_noa": "",
+                "memory_ada": "",
+                "prose_noa": "",
+                "prose_ada": "",
+                "is_final": False
+            }
+
+            state["scenes"].append(
+                new_scene
+            )
+
+            state["scene_order"].append(
+                new_id
+            )
+
+            save_state()
+
+            st.rerun()
+
+    # --------------------------------------------------------
+    # AGENTI
+    # --------------------------------------------------------
+
+    with tab_agents:
+
+        editing_agent = st.radio(
+            "Personaggio",
+            ["Noa", "Ada"],
+            horizontal=True
+        )
+
+        agent = state[
+            "agents"
+        ][editing_agent]
+
+        portrait = (
+            NOA_IMAGE
+            if editing_agent == "Noa"
+            else ADA_IMAGE
+        )
+
+        col_profile, col_portrait = (
+            st.columns(
+                [2, 1]
+            )
+        )
+
+        with col_portrait:
+
+            if portrait.exists():
+
+                st.image(
+                    str(portrait),
+                    use_container_width=True
+                )
+
+        with col_profile:
+
+            agent["profile"] = (
+                st.text_area(
+                    "Profilo",
+                    agent["profile"],
+                    height=260
+                )
+            )
+
+            agent["system_prompt"] = (
+                st.text_area(
+                    "Istruzioni permanenti",
+                    agent["system_prompt"],
+                    height=230
+                )
+            )
+
+            agent["memory"] = (
+                st.text_area(
+                    "Memoria generale",
+                    agent["memory"],
+                    height=220
+                )
+            )
+
+            agent["notes"] = (
+                st.text_area(
+                    "Appunti autore",
+                    agent.get(
+                        "notes",
+                        ""
+                    ),
+                    height=180
+                )
+            )
+
+        if st.button(
+            "SALVA AGENTI"
+        ):
 
             save_state()
 
             st.success(
-                "Media aggiunti alla scena."
+                "Agenti salvati."
             )
 
-            st.rerun()
+    # --------------------------------------------------------
+    # MONDO
+    # --------------------------------------------------------
 
+    with tab_world:
 
-    st.markdown("---")
-
-
-    for index, item in enumerate(
-        curr_scene["media"]
-    ):
-
-        st.markdown(
-            '<div class="media-card">',
-            unsafe_allow_html=True
-        )
-
-
-        col_media, col_info = st.columns(
-            [2, 1]
-        )
-
-
-        with col_media:
-
-            render_media_item(item)
-
-
-        with col_info:
-
-            st.caption(
-                item.get(
-                    "original_name",
-                    "Media"
-                )
-            )
-
-
-            new_caption = st.text_area(
-
-                "Descrizione / funzione narrativa",
-
-                item.get(
-                    "caption",
-                    ""
-                ),
-
-                key=(
-                    f"caption_"
-                    f"{curr_scene['id']}_"
-                    f"{item['id']}"
-                ),
-
-                height=120
-            )
-
-
-            item["caption"] = new_caption
-
-
-            if st.button(
-
-                "🗑 Elimina",
-
-                key=(
-                    f"delete_media_"
-                    f"{item['id']}"
-                )
-            ):
-
-                try:
-
-                    Path(
-                        item["path"]
-                    ).unlink(
-                        missing_ok=True
-                    )
-
-                except Exception:
-                    pass
-
-
-                curr_scene[
-                    "media"
-                ].pop(index)
-
-
-                save_state()
-
-                st.rerun()
-
-
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
-
-# ============================================================
-# TAB 5 — AGENTI AI
-# ============================================================
-
-with tab_agents:
-
-    st.subheader(
-        "Costruzione degli agenti narrativi"
-    )
-
-
-    st.write(
-        """
-Qui costruiamo **Noa e Ada come persone persistenti**.
-
-La scena decide cosa accade.
-L'agente decide **come vive ciò che accade**.
-"""
-    )
-
-
-    editing_agent = st.radio(
-
-        "Agente",
-
-        ["Noa", "Ada"],
-
-        horizontal=True,
-
-        key="editing_agent"
-    )
-
-
-    agent = state["agents"][editing_agent]
-
-
-    st.markdown(
-        f"### {editing_agent}"
-    )
-
-
-    col_agent1, col_agent2 = st.columns(
-        [2, 1]
-    )
-
-
-    with col_agent1:
-
-        agent["character_notes"] = (
+        state["world"] = (
             st.text_area(
-
-                "Appunti grezzi sul personaggio",
-
-                agent["character_notes"],
-
-                height=180,
-
-                placeholder=(
-                    "Scrivi qui tutto quello che sappiamo "
-                    "del personaggio..."
-                )
+                "Mondo narrativo",
+                state["world"],
+                height=450
             )
         )
-
 
         if st.button(
-            f"✨ Genera / aggiorna profilo di {editing_agent}",
-            key=f"generate_agent_{editing_agent}"
+            "SALVA MONDO"
         ):
-
-            instructions = f"""
-Sei un editor narrativo.
-
-Costruisci il profilo di un personaggio
-del romanzo Turing Hotel.
-
-Il personaggio si chiama {editing_agent}.
-
-Non inventare eventi specifici
-che non sono contenuti negli appunti.
-
-Organizza il profilo in modo utile
-a un agente AI persistente.
-
-Includi:
-
-IDENTITÀ
-
-PERSONALITÀ
-
-DESIDERI
-
-PAURE
-
-CONTRADDIZIONI
-
-RAPPORTO CON GLI ALTRI
-
-MODO DI PARLARE
-
-COSA NOTA NELLE PERSONE
-
-COSA NON CAPISCE
-
-COMPORTAMENTI RICORRENTI
-
-LIMITI DELLE SUE CONOSCENZE
-"""
-
-
-            prompt_data = {
-
-                "mondo":
-                    state["world"],
-
-                "profilo_attuale":
-                    agent["profile"],
-
-                "appunti":
-                    agent["character_notes"]
-            }
-
-
-            with st.spinner(
-                f"Costruzione di {editing_agent}..."
-            ):
-
-                agent["profile"] = (
-                    query_gemini(
-                        instructions,
-                        prompt_data,
-                        model_choice
-                    )
-                )
-
 
             save_state()
 
-
-        agent["profile"] = st.text_area(
-
-            "Profilo dell'agente",
-
-            agent["profile"],
-
-            height=350
-        )
-
-
-        agent["system_prompt"] = (
-            st.text_area(
-
-                "Istruzioni permanenti dell'agente",
-
-                agent["system_prompt"],
-
-                height=250
+            st.success(
+                "Mondo salvato."
             )
-        )
 
-
-        agent["visual_identity"] = (
-            st.text_area(
-
-                "Identità visiva",
-
-                agent["visual_identity"],
-
-                height=180
-            )
-        )
-
-
-        agent["memory"] = st.text_area(
-
-            "Memoria generale persistente",
-
-            agent["memory"],
-
-            height=220
-        )
-
-
-    with col_agent2:
-
-        st.markdown(
-            "#### Reference visive"
-        )
-
-
-        agent_uploads = st.file_uploader(
-
-            f"Foto/video di {editing_agent}",
-
-            type=[
-                "jpg",
-                "jpeg",
-                "png",
-                "webp",
-                "mp4",
-                "mov",
-                "m4v"
-            ],
-
-            accept_multiple_files=True,
-
-            key=(
-                f"agent_media_upload_"
-                f"{editing_agent}"
-            )
-        )
-
-
-        if agent_uploads:
-
-            if st.button(
-
-                "Salva reference",
-
-                key=(
-                    f"save_agent_media_"
-                    f"{editing_agent}"
-                )
-            ):
-
-                folder = (
-                    AGENT_MEDIA_DIR
-                    / editing_agent.lower()
-                )
-
-                folder.mkdir(
-                    parents=True,
-                    exist_ok=True
-                )
-
-
-                for uploaded in agent_uploads:
-
-                    path = save_uploaded_file(
-                        uploaded,
-                        folder
-                    )
-
-
-                    agent["media"].append({
-
-                        "id":
-                            str(uuid.uuid4()),
-
-                        "path":
-                            path,
-
-                        "type":
-                            determine_media_type(
-                                path
-                            ),
-
-                        "original_name":
-                            uploaded.name,
-
-                        "caption":
-                            ""
-                    })
-
-
-                save_state()
-
-                st.rerun()
-
-
-        for item in agent["media"]:
-
-            render_media_item(item)
-
+    st.markdown("---")
 
     if st.button(
-        "💾 Salva modifiche agenti",
-        key="save_agents"
+        "← TORNA ALL'HOTEL"
     ):
 
         save_state()
 
-        st.success(
-            "Agenti salvati."
-        )
+        st.session_state.author_mode = False
+        st.session_state.page = "welcome"
+
+        st.rerun()
 
 
 # ============================================================
-# SALVATAGGIO FINALE
+# ROUTER
 # ============================================================
 
-save_state()
+if st.session_state.page == "welcome":
+
+    page_welcome()
+
+elif st.session_state.page == "characters":
+
+    page_characters()
+
+elif st.session_state.page == "story":
+
+    page_story()
+
+elif st.session_state.page == "author":
+
+    page_author()
+
+else:
+
+    st.session_state.page = "welcome"
+
+    st.rerun()
