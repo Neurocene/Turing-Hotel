@@ -377,9 +377,11 @@ def safe_dict(value):
 
 def number_from_filename(filename):
 
+    filename = filename.lower()
+
     matches = re.findall(
-        r"\.(\d+)\.[^.]+$",
-        filename.lower()
+        r"[.-](\d+)\.[^.]+$",
+        filename
     )
 
     if matches:
@@ -424,6 +426,7 @@ def read_reference_file(path):
             pages = []
 
             for page in reader.pages:
+
                 text = page.extract_text()
 
                 if text:
@@ -569,7 +572,7 @@ def load_writer_books():
 
 
 # ============================================================
-# MIGRAZIONE STATO
+# MIGRAZIONE
 # ============================================================
 
 def find_existing_scene(
@@ -618,7 +621,8 @@ def find_existing_scene(
             if (
                 alias in old_id
                 or
-                alias.replace(".", " ") in old_title
+                alias.replace(".", " ")
+                in old_title
             ):
                 return old_scene
 
@@ -1032,9 +1036,7 @@ def get_previous_memories(
 # CREATORE DELLA SCENA
 # ============================================================
 
-def generate_story_context(
-    scene
-):
+def generate_story_context(scene):
 
     instructions = """
 Sei il CREATORE DELLA SCENA
@@ -1045,20 +1047,18 @@ Il file CONTESTO_TURING_HOTEL
 
 Devi rispettarlo.
 
-L'autore fornisce
-poche righe
+L'autore fornisce poche righe
 sulla situazione.
 
-Tu devi trasformarle
-in un contesto narrativo
-chiaro e utilizzabile
-dagli agenti Noa e Ada.
+Trasformale in un contesto
+narrativo chiaro
+e utilizzabile da Noa e Ada.
 
 NON sei l'agente scrittore.
 
-NON usi libri di riferimento.
+NON usi i file LIBRIAGENTI.
 
-NON devi decidere:
+Non decidere:
 
 - cosa pensa Noa;
 - cosa pensa Ada;
@@ -1067,8 +1067,8 @@ NON devi decidere:
 - cosa scelgono;
 - come reagiscono.
 
-Devi definire soltanto
-la situazione oggettiva.
+Definisci soltanto
+la situazione narrativa oggettiva.
 
 Puoi precisare:
 
@@ -1076,7 +1076,7 @@ Puoi precisare:
 - momento;
 - atmosfera;
 - persone presenti;
-- fatti già avvenuti;
+- fatti avvenuti;
 - ciò che è visibile;
 - ciò che è udibile;
 - informazioni pubbliche;
@@ -1084,10 +1084,8 @@ Puoi precisare:
 - circostanze;
 - tensioni oggettive.
 
-Non aggiungere
-eventi fondamentali
-non suggeriti
-dall'autore
+Non aggiungere eventi fondamentali
+non suggeriti dall'autore
 o dal contesto canonico.
 
 Se qualcosa manca,
@@ -1098,9 +1096,7 @@ diventerà realtà narrativa.
 """
 
     return query_openai(
-
         instructions,
-
         {
             "CONTESTO_TURING_HOTEL":
                 load_turing_context(),
@@ -1133,23 +1129,20 @@ diventerà realtà narrativa.
 # AGENTE SCRITTORE
 # ============================================================
 
-def refine_context_with_writer(
-    scene
-):
+def refine_context_with_writer(scene):
 
     instructions = """
 Sei l'AGENTE SCRITTORE
 del romanzo Turing Hotel.
 
 Ricevi una descrizione
-di scena già costruita
+già costruita
 dal Creatore della scena.
 
-Il tuo compito
-è migliorarne
+Migliorane soltanto
 la qualità narrativa.
 
-Puoi migliorare:
+Puoi intervenire su:
 
 - ritmo;
 - atmosfera;
@@ -1159,35 +1152,24 @@ Puoi migliorare:
 - densità;
 - efficacia delle immagini.
 
-NON puoi cambiare
-i fatti della scena.
+Non cambiare i fatti.
 
-NON puoi aggiungere
+Non aggiungere
 nuovi eventi importanti.
 
-NON puoi decidere
-come reagiscono Noa o Ada.
+Non decidere
+come reagiscono Noa e Ada.
 
 I file LIBRIAGENTI
 sono riferimenti
 di tecnica narrativa.
 
 Non copiarli.
-
 Non citarli.
-
-Non imitare
-letteralmente
-un autore riconoscibile.
-
-Mantieni invariati
-i fatti della scena.
 """
 
     return query_openai(
-
         instructions,
-
         {
             "SCENA":
                 scene["title"],
@@ -1211,9 +1193,7 @@ i fatti della scena.
 # LOCATION IMAGES
 # ============================================================
 
-def scene_location_name(
-    scene_id
-):
+def scene_location_name(scene_id):
 
     mapping = {
         "hall": "hall",
@@ -1229,9 +1209,7 @@ def scene_location_name(
     )
 
 
-def find_image_by_base_name(
-    base_name
-):
+def find_image_by_base_name(base_name):
 
     for extension in [
         ".jpg",
@@ -1252,9 +1230,7 @@ def find_image_by_base_name(
     return None
 
 
-def get_scene_cover_image(
-    scene_id
-):
+def get_scene_cover_image(scene_id):
 
     location = scene_location_name(
         scene_id
@@ -1265,9 +1241,7 @@ def get_scene_cover_image(
     )
 
 
-def get_scene_context_image(
-    scene_id
-):
+def get_scene_context_image(scene_id):
 
     location = scene_location_name(
         scene_id
@@ -1278,9 +1252,7 @@ def get_scene_context_image(
     )
 
 
-def get_character_portrait(
-    pov
-):
+def get_character_portrait(pov):
 
     if pov == "Noa":
         return NOA_IMAGE
@@ -1289,12 +1261,10 @@ def get_character_portrait(
 
 
 # ============================================================
-# STORY EDITOR UI COMPATTO
+# STORY EDITOR UI
 # ============================================================
 
-def render_story_editor(
-    scene
-):
+def render_story_editor(scene):
 
     context_image = (
         get_scene_context_image(
@@ -1306,10 +1276,6 @@ def render_story_editor(
         [1.4, 1],
         gap="medium"
     )
-
-    # ========================================================
-    # SINISTRA
-    # ========================================================
 
     with editor_col:
 
@@ -1338,7 +1304,6 @@ Descrivi brevemente la situazione narrativa.
             scene[
                 "author_context"
             ] = st.text_area(
-
                 "Indicazioni dell'autore",
 
                 value=scene.get(
@@ -1401,7 +1366,6 @@ Descrivi brevemente la situazione narrativa.
                             )
 
                         save_state()
-
                         st.rerun()
 
             with save_col:
@@ -1420,10 +1384,6 @@ Descrivi brevemente la situazione narrativa.
                     st.success(
                         "Salvato."
                     )
-
-            # =================================================
-            # BOZZA COMPATTA
-            # =================================================
 
             if scene.get(
                 "story_draft",
@@ -1444,7 +1404,6 @@ Descrivi brevemente la situazione narrativa.
                     scene[
                         "story_feedback"
                     ] = st.text_area(
-
                         "Correzioni",
 
                         value=scene.get(
@@ -1493,7 +1452,6 @@ Descrivi brevemente la situazione narrativa.
                                 )
 
                             save_state()
-
                             st.rerun()
 
                     with writer_col:
@@ -1520,7 +1478,6 @@ Descrivi brevemente la situazione narrativa.
                                 )
 
                             save_state()
-
                             st.rerun()
 
                     if st.button(
@@ -1540,12 +1497,7 @@ Descrivi brevemente la situazione narrativa.
                         ]
 
                         save_state()
-
                         st.rerun()
-
-            # =================================================
-            # APPROVED
-            # =================================================
 
             if scene.get(
                 "approved_context",
@@ -1564,14 +1516,9 @@ Descrivi brevemente la situazione narrativa.
                     )
 
                     st.caption(
-                        "Noa e Ada usano "
-                        "questo testo come "
-                        "realtà della scena."
+                        "Noa e Ada usano questo "
+                        "testo come realtà della scena."
                     )
-
-    # ========================================================
-    # FOTO A DESTRA
-    # ========================================================
 
     with image_col:
 
@@ -1643,16 +1590,13 @@ MEMORIA:
 
 Non inventare
 come fatto qualcosa
-che non compare
-nei tuoi dati.
+che non compare nei tuoi dati.
 
-Puoi:
-
-- dubitare;
-- sbagliare;
-- mentire;
-- sospettare;
-- ricordare male.
+Puoi dubitare,
+sbagliare,
+mentire,
+sospettare,
+ricordare male.
 
 Interpreta soltanto {character}.
 
@@ -1671,8 +1615,7 @@ Usa i dati
 per essere coerente,
 non per recitarli tutti.
 
-Scrivi
-in italiano naturale.
+Scrivi in italiano naturale.
 """
 
     if interaction_mode == "inner":
@@ -1691,14 +1634,12 @@ un interlocutore esterno.
 Prosegui la riflessione
 dall'interno.
 
-Puoi:
-
-- esitare;
-- contraddirti;
-- ricordare;
-- negare;
-- razionalizzare;
-- avere paura.
+Puoi esitare,
+contraddirti,
+ricordare,
+negare,
+razionalizzare,
+avere paura.
 
 Non spiegare
 che stai facendo
@@ -1734,7 +1675,6 @@ def answer_as_character(
 ):
 
     raw = query_openai(
-
         character_prompt(
             character,
             scene,
@@ -1746,9 +1686,7 @@ def answer_as_character(
                 character,
 
             "SCENA":
-                scene[
-                    "title"
-                ],
+                scene["title"],
 
             "CONTESTO_APPROVATO":
                 scene.get(
@@ -1783,7 +1721,7 @@ def answer_as_character(
 
 
 # ============================================================
-# CREA RICORDO SCENA
+# CREA RICORDO
 # ============================================================
 
 def create_scene_memory(
@@ -1815,12 +1753,9 @@ per tecnica narrativa,
 ritmo e atmosfera.
 
 Non copiarli.
-
 Non citarli.
 
-Il ricordo
-deve essere scritto
-in prima persona.
+Scrivi in prima persona.
 
 Il contesto approvato
 deve diventare
@@ -1846,7 +1781,6 @@ fatti nuovi.
 """
 
     return query_openai(
-
         instructions,
 
         {
@@ -1854,9 +1788,7 @@ fatti nuovi.
                 pov,
 
             "SCENA":
-                scene[
-                    "title"
-                ],
+                scene["title"],
 
             "INDICAZIONI_AUTORE":
                 scene.get(
@@ -1914,6 +1846,10 @@ VIDEO_EXTENSIONS = {
 }
 
 
+# ============================================================
+# MEDIA COMUNI + MEDIA SPECIFICI DEL PERSONAGGIO
+# ============================================================
+
 def find_scene_media(
     scene_id,
     character
@@ -1946,10 +1882,24 @@ def find_scene_media(
 
         filename = path.name.lower()
 
+        matched = False
+
         for location in aliases:
 
-            pattern = (
-                rf"^{re.escape(location)}\."
+            escaped_location = re.escape(
+                location
+            )
+
+            # -----------------------------------------------
+            # SPECIFICO PERSONAGGIO
+            #
+            # hall.noa.1.jpg
+            # hall.noa.2.mp4
+            # hall.ada.1.jpg
+            # -----------------------------------------------
+
+            character_pattern = (
+                rf"^{escaped_location}\."
                 rf"{character}\."
                 rf"(\d+)\."
                 rf"(jpg|jpeg|png|webp|"
@@ -1957,15 +1907,79 @@ def find_scene_media(
             )
 
             if re.match(
-                pattern,
+                character_pattern,
                 filename
             ):
 
-                results.append(
-                    path
+                matched = True
+                break
+
+            # -----------------------------------------------
+            # COMUNE - PUNTO
+            #
+            # hall.2.jpg
+            # hall.3.mp4
+            # -----------------------------------------------
+
+            shared_dot_pattern = (
+                rf"^{escaped_location}\."
+                rf"(\d+)\."
+                rf"(jpg|jpeg|png|webp|"
+                rf"mp4|mov|webm|m4v)$"
+            )
+
+            if re.match(
+                shared_dot_pattern,
+                filename
+            ):
+
+                matched = True
+                break
+
+            # -----------------------------------------------
+            # COMUNE - TRATTINO
+            #
+            # hall-2.jpg
+            # hall-3.mp4
+            #
+            # IMPORTANTE:
+            # location-1.jpg è riservato
+            # all'immagine del Creatore della scena.
+            # -----------------------------------------------
+
+            dash_match = re.match(
+                (
+                    rf"^{escaped_location}-"
+                    rf"(\d+)\."
+                    rf"(jpg|jpeg|png|webp|"
+                    rf"mp4|mov|webm|m4v)$"
+                ),
+                filename
+            )
+
+            if dash_match:
+
+                media_number = int(
+                    dash_match.group(1)
                 )
 
+                # location-1.jpg è riservato
+                # alla foto laterale del contesto.
+                if (
+                    media_number == 1
+                    and
+                    suffix in IMAGE_EXTENSIONS
+                ):
+                    continue
+
+                matched = True
                 break
+
+        if matched:
+
+            results.append(
+                path
+            )
 
     return sorted(
         results,
@@ -2011,7 +2025,7 @@ def get_scene_images(
 
 
 # ============================================================
-# INTRO VIDEO PERSONAGGIO
+# INTRO VIDEO PERSONAGGI
 # ============================================================
 
 def character_intro_videos(
@@ -2084,7 +2098,7 @@ Video
 
 
 # ============================================================
-# FOTO SPECIFICHE PERCORSO
+# FOTO
 # ============================================================
 
 @st.dialog(
@@ -2193,24 +2207,19 @@ def make_memory(
 ):
 
     has_content = (
-
         bool(
             scene[
                 "messages"
             ][pov]
         )
-
         or
-
         bool(
             scene.get(
                 "approved_context",
                 ""
             ).strip()
         )
-
         or
-
         bool(
             extra_event
         )
@@ -2273,10 +2282,6 @@ def render_chat_panel(
         [2.35, 1],
         gap="medium"
     )
-
-    # ========================================================
-    # CHAT SINISTRA
-    # ========================================================
 
     with chat_col:
 
@@ -2393,10 +2398,6 @@ Dialoghi, azioni e riflessioni
                             unsafe_allow_html=True
                         )
 
-            # =================================================
-            # MEMORY + DELETE
-            # =================================================
-
             memory_col, delete_col = st.columns(
                 2
             )
@@ -2453,10 +2454,6 @@ Dialoghi, azioni e riflessioni
 
                     st.rerun()
 
-            # =================================================
-            # MEMORY VIEW
-            # =================================================
-
             memory = scene[
                 "diary"
             ][pov]
@@ -2478,10 +2475,6 @@ Dialoghi, azioni e riflessioni
                     )
 
             st.markdown("---")
-
-            # =================================================
-            # INPUT
-            # =================================================
 
             with st.form(
                 key=(
@@ -2540,10 +2533,6 @@ Dialoghi, azioni e riflessioni
                     "INVIA",
                     use_container_width=True
                 )
-
-            # =================================================
-            # SEND
-            # =================================================
 
             if (
                 send
@@ -2617,10 +2606,6 @@ Dialoghi, azioni e riflessioni
 
                 st.rerun()
 
-    # ========================================================
-    # RITRATTO DESTRA
-    # ========================================================
-
     with portrait_col:
 
         if (
@@ -2679,9 +2664,7 @@ Storia di {pov}
         unsafe_allow_html=True
     )
 
-    # ========================================================
-    # FOTO PRINCIPALE LOCATION
-    # ========================================================
+    # FOTO PRINCIPALE COMUNE
 
     cover_image = get_scene_cover_image(
         scene["id"]
@@ -2700,35 +2683,27 @@ Storia di {pov}
             use_container_width=True
         )
 
-    # ========================================================
-    # STORY EDITOR COMPATTO + LOCATION-1
-    # ========================================================
+    # STORY EDITOR + LOCATION-1
 
     render_story_editor(
         scene
     )
 
-    # ========================================================
-    # VIDEO
-    # ========================================================
+    # VIDEO COMUNI + SPECIFICI
 
     render_scene_videos(
         scene,
         pov
     )
 
-    # ========================================================
-    # CHAT + RITRATTO
-    # ========================================================
+    # CHAT
 
     render_chat_panel(
         scene,
         pov
     )
 
-    # ========================================================
-    # FOTO SPECIFICHE DEL PERCORSO
-    # ========================================================
+    # FOTO COMUNI + SPECIFICHE
 
     render_scene_photos(
         scene,
@@ -2774,8 +2749,6 @@ Storia di {pov}
         unsafe_allow_html=True
     )
 
-    # FOTO PRINCIPALE
-
     cover_image = get_scene_cover_image(
         "ritorno"
     )
@@ -2793,13 +2766,9 @@ Storia di {pov}
             use_container_width=True
         )
 
-    # STORY EDITOR
-
     render_story_editor(
         scene
     )
-
-    # VIDEO
 
     render_scene_videos(
         scene,
@@ -2838,10 +2807,10 @@ durante il percorso.
                 )
 
                 st.write(
-                    memory["ricordo"]
+                    memory[
+                        "ricordo"
+                    ]
                 )
-
-    # CHAT
 
     render_chat_panel(
         scene,
@@ -2855,10 +2824,6 @@ durante il percorso.
     )
 
     st.markdown("---")
-
-    # ========================================================
-    # DECISIONE AUTONOMA
-    # ========================================================
 
     if st.button(
         f"LASCIA DECIDERE "
@@ -2947,7 +2912,6 @@ dici o scegli.
                 )
 
             save_state()
-
             st.rerun()
 
     decision = scene[
@@ -2966,8 +2930,6 @@ dici o scegli.
         st.markdown(
             decision
         )
-
-    # FOTO SPECIFICHE
 
     render_scene_photos(
         scene,
@@ -3028,10 +2990,6 @@ def page_characters():
         [1, .08, 1]
     )
 
-    # ========================================================
-    # NOA
-    # ========================================================
-
     with noa_col:
 
         if NOA_IMAGE.exists():
@@ -3067,16 +3025,10 @@ NOA
         ):
 
             st.session_state.pov = "Noa"
-
             st.session_state.scene_index = 0
-
             st.session_state.page = "story"
 
             st.rerun()
-
-    # ========================================================
-    # ADA
-    # ========================================================
 
     with ada_col:
 
@@ -3113,9 +3065,7 @@ ADA
         ):
 
             st.session_state.pov = "Ada"
-
             st.session_state.scene_index = 0
-
             st.session_state.page = "story"
 
             st.rerun()
@@ -3159,10 +3109,6 @@ def page_story():
     scene = scene_map[
         scene_id
     ]
-
-    # ========================================================
-    # SIDEBAR
-    # ========================================================
 
     st.sidebar.markdown(
         f"## {pov}"
@@ -3214,10 +3160,6 @@ def page_story():
 
     st.sidebar.markdown("---")
 
-    # ========================================================
-    # DATI AGENTE
-    # ========================================================
-
     with st.sidebar.expander(
         "DATI AGENTE"
     ):
@@ -3235,12 +3177,10 @@ def page_story():
         for source in sources:
 
             st.write(
-                source["file"]
+                source[
+                    "file"
+                ]
             )
-
-    # ========================================================
-    # CONTESTO CANONICO
-    # ========================================================
 
     with st.sidebar.expander(
         "CONTESTO CANONICO"
@@ -3270,7 +3210,6 @@ def page_story():
         )
 
         st.session_state.pov = None
-
         st.session_state.scene_index = 0
 
         st.rerun()
@@ -3285,14 +3224,9 @@ def page_story():
         )
 
         st.session_state.pov = None
-
         st.session_state.scene_index = 0
 
         st.rerun()
-
-    # ========================================================
-    # SCENA
-    # ========================================================
 
     if scene_id == "ritorno":
 
@@ -3308,14 +3242,12 @@ def page_story():
             index
         )
 
-    # ========================================================
-    # NAVIGAZIONE
-    # ========================================================
-
     st.markdown("---")
 
-    previous_col, center, next_col = st.columns(
-        [1, 3, 1]
+    previous_col, center, next_col = (
+        st.columns(
+            [1, 3, 1]
+        )
     )
 
     with previous_col:
@@ -3351,31 +3283,20 @@ def page_story():
 # ROUTER
 # ============================================================
 
-if (
-    st.session_state.page
-    == "entrance"
-):
+if st.session_state.page == "entrance":
 
     page_entrance()
 
-elif (
-    st.session_state.page
-    == "characters"
-):
+elif st.session_state.page == "characters":
 
     page_characters()
 
-elif (
-    st.session_state.page
-    == "story"
-):
+elif st.session_state.page == "story":
 
     page_story()
 
 else:
 
-    st.session_state.page = (
-        "entrance"
-    )
+    st.session_state.page = "entrance"
 
     st.rerun()
