@@ -41,7 +41,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ============================================================
-# ESTENSIONI MEDIA
+# MEDIA
 # ============================================================
 
 IMAGE_EXTENSIONS = {
@@ -58,6 +58,11 @@ VIDEO_EXTENSIONS = {
     ".m4v"
 }
 
+ALL_MEDIA_EXTENSIONS = (
+    IMAGE_EXTENSIONS
+    | VIDEO_EXTENSIONS
+)
+
 
 # ============================================================
 # OPENAI
@@ -66,15 +71,21 @@ VIDEO_EXTENSIONS = {
 openai_key = None
 
 try:
-    openai_key = st.secrets.get("OPENAI_API_KEY")
+    openai_key = st.secrets.get(
+        "OPENAI_API_KEY"
+    )
 except Exception:
     pass
 
 if not openai_key:
-    openai_key = os.environ.get("OPENAI_API_KEY")
+    openai_key = os.environ.get(
+        "OPENAI_API_KEY"
+    )
 
 client = (
-    OpenAI(api_key=openai_key)
+    OpenAI(
+        api_key=openai_key
+    )
     if openai_key
     else None
 )
@@ -95,7 +106,8 @@ except Exception:
 # CSS
 # ============================================================
 
-st.markdown("""
+st.markdown(
+    """
 <style>
 
 .stApp {
@@ -252,7 +264,9 @@ div[data-testid="stExpander"] {
 }
 
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
@@ -268,14 +282,30 @@ SCENE_ORDER = [
 ]
 
 SCENE_TITLES = {
-    "hall": "La Hall",
-    "funerale": "Il Funerale",
-    "matrimonio": "Il Matrimonio",
-    "reparto_nascite": "Il reparto nascite",
-    "ritorno": "Il ritorno"
+    "hall":
+        "La Hall",
+
+    "funerale":
+        "Il Funerale",
+
+    "matrimonio":
+        "Il Matrimonio",
+
+    "reparto_nascite":
+        "Il reparto nascite",
+
+    "ritorno":
+        "Il ritorno"
 }
 
-SCENE_FILE_ALIASES = {
+
+# ============================================================
+# ALIAS LOCATION
+#
+# IDENTICA POLICY PER TUTTE LE SCENE
+# ============================================================
+
+SCENE_ALIASES = {
 
     "hall": [
         "hall"
@@ -299,26 +329,451 @@ SCENE_FILE_ALIASES = {
     ],
 
     "ritorno": [
-        "ritorno"
+        "ritorno",
+        "finale",
+        "final"
     ]
 }
+
+
+# ============================================================
+# NORMALIZZAZIONE NOMI
+# ============================================================
+
+def normalize_name(value):
+
+    value = str(
+        value
+    ).lower().strip()
+
+    # elimina estensione
+
+    value = re.sub(
+        r"\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
+        "",
+        value,
+        flags=re.IGNORECASE
+    )
+
+    # elimina tutti i separatori
+    #
+    # matrimonio.noa.1
+    # matrimonio-noa-1
+    # matrimonio_noa_1
+    #
+    # diventano tutti:
+    #
+    # matrimonionoa1
+
+    value = re.sub(
+        r"[\s._\-]+",
+        "",
+        value
+    )
+
+    return value
+
+
+def normalized_scene_aliases(
+    scene_id
+):
+
+    aliases = SCENE_ALIASES.get(
+        scene_id,
+        [scene_id]
+    )
+
+    return sorted(
+        {
+            normalize_name(
+                alias
+            )
+            for alias in aliases
+        },
+        key=len,
+        reverse=True
+    )
+
+
+# ============================================================
+# PARSER MEDIA UNICO
+# ============================================================
+
+def parse_scene_media(
+    path,
+    scene_id
+):
+
+    """
+    Restituisce:
+
+    {
+        "type": "cover" | "shared" | "noa" | "ada",
+        "number": 0 / 1 / 2 / ...
+    }
+
+    oppure None se il file
+    non appartiene alla scena.
+
+    STESSA POLICY PER:
+    hall
+    funerale
+    matrimonio
+    reparto nascite
+    ritorno/finale
+    """
+
+    if not path.is_file():
+
+        return None
+
+    if (
+        path.suffix.lower()
+        not in ALL_MEDIA_EXTENSIONS
+    ):
+
+        return None
+
+    compact = normalize_name(
+        path.stem
+    )
+
+    aliases = normalized_scene_aliases(
+        scene_id
+    )
+
+    for alias in aliases:
+
+        # -----------------------------------------------
+        # COVER
+        #
+        # matrimonio.jpg
+        # Matrimonio.JPG
+        # reparto nascite.jpg
+        # finale.jpg
+        # -----------------------------------------------
+
+        if compact == alias:
+
+            return {
+                "type":
+                    "cover",
+
+                "number":
+                    0
+            }
+
+        if not compact.startswith(
+            alias
+        ):
+
+            continue
+
+        remainder = compact[
+            len(alias):
+        ]
+
+        # -----------------------------------------------
+        # SOLO NOA
+        #
+        # matrimonionoa1
+        # -----------------------------------------------
+
+        if remainder.startswith(
+            "noa"
+        ):
+
+            number_part = remainder[
+                len("noa"):
+            ]
+
+            if number_part.isdigit():
+
+                return {
+                    "type":
+                        "noa",
+
+                    "number":
+                        int(
+                            number_part
+                        )
+                }
+
+            continue
+
+        # -----------------------------------------------
+        # SOLO ADA
+        # -----------------------------------------------
+
+        if remainder.startswith(
+            "ada"
+        ):
+
+            number_part = remainder[
+                len("ada"):
+            ]
+
+            if number_part.isdigit():
+
+                return {
+                    "type":
+                        "ada",
+
+                    "number":
+                        int(
+                            number_part
+                        )
+                }
+
+            continue
+
+        # -----------------------------------------------
+        # COMUNE
+        #
+        # matrimonio1
+        # matrimonio2
+        # -----------------------------------------------
+
+        if remainder.isdigit():
+
+            return {
+                "type":
+                    "shared",
+
+                "number":
+                    int(
+                        remainder
+                    )
+            }
+
+    return None
+
+
+# ============================================================
+# COVER LOCATION
+# ============================================================
+
+def get_scene_cover_image(
+    scene_id
+):
+
+    candidates = []
+
+    if not ASSETS_DIR.exists():
+
+        return None
+
+    for path in ASSETS_DIR.iterdir():
+
+        parsed = parse_scene_media(
+            path,
+            scene_id
+        )
+
+        if not parsed:
+            continue
+
+        if (
+            parsed["type"]
+            != "cover"
+        ):
+            continue
+
+        if (
+            path.suffix.lower()
+            not in IMAGE_EXTENSIONS
+        ):
+            continue
+
+        candidates.append(
+            path
+        )
+
+    if not candidates:
+
+        return None
+
+    return sorted(
+        candidates,
+        key=lambda p:
+        p.name.lower()
+    )[0]
+
+
+# ============================================================
+# MEDIA SCENA
+#
+# STESSA IDENTICA LOGICA
+# PER TUTTE LE SCENE
+# ============================================================
+
+def find_scene_media(
+    scene_id,
+    character
+):
+
+    character = (
+        character.lower()
+    )
+
+    results = []
+
+    if not ASSETS_DIR.exists():
+
+        return results
+
+    for path in ASSETS_DIR.iterdir():
+
+        parsed = parse_scene_media(
+            path,
+            scene_id
+        )
+
+        if not parsed:
+            continue
+
+        media_type = parsed[
+            "type"
+        ]
+
+        number = parsed[
+            "number"
+        ]
+
+        # cover mostrata separatamente
+
+        if media_type == "cover":
+            continue
+
+        # media comuni
+
+        if media_type == "shared":
+
+            results.append(
+                (
+                    number,
+                    path
+                )
+            )
+
+            continue
+
+        # media specifici Noa
+
+        if (
+            character == "noa"
+            and
+            media_type == "noa"
+        ):
+
+            results.append(
+                (
+                    number,
+                    path
+                )
+            )
+
+            continue
+
+        # media specifici Ada
+
+        if (
+            character == "ada"
+            and
+            media_type == "ada"
+        ):
+
+            results.append(
+                (
+                    number,
+                    path
+                )
+            )
+
+            continue
+
+    results.sort(
+        key=lambda item: (
+            item[0],
+            item[1].name.lower()
+        )
+    )
+
+    return [
+        path
+        for number, path
+        in results
+    ]
+
+
+def get_scene_images(
+    scene_id,
+    character
+):
+
+    return [
+        path
+
+        for path in find_scene_media(
+            scene_id,
+            character
+        )
+
+        if (
+            path.suffix.lower()
+            in IMAGE_EXTENSIONS
+        )
+    ]
+
+
+def get_scene_videos(
+    scene_id,
+    character
+):
+
+    return [
+        path
+
+        for path in find_scene_media(
+            scene_id,
+            character
+        )
+
+        if (
+            path.suffix.lower()
+            in VIDEO_EXTENSIONS
+        )
+    ]
 
 
 # ============================================================
 # DEFAULT STATE
 # ============================================================
 
-def empty_scene(scene_id, title):
+def empty_scene(
+    scene_id,
+    title
+):
 
     scene = {
 
-        "id": scene_id,
-        "title": title,
+        "id":
+            scene_id,
 
-        "author_context": "",
-        "story_draft": "",
-        "story_feedback": "",
-        "approved_context": "",
+        "title":
+            title,
+
+        "author_context":
+            "",
+
+        "story_draft":
+            "",
+
+        "story_feedback":
+            "",
+
+        "approved_context":
+            "",
 
         "messages": {
             "Noa": [],
@@ -333,9 +788,15 @@ def empty_scene(scene_id, title):
 
     if scene_id == "ritorno":
 
-        scene["decision"] = {
-            "Noa": "",
-            "Ada": ""
+        scene[
+            "decision"
+        ] = {
+
+            "Noa":
+                "",
+
+            "Ada":
+                ""
         }
 
     return scene
@@ -360,8 +821,8 @@ Noa è un agente artificiale relazionale.
 
 Sa di essere artificiale.
 
-È stata progettata per comprendere
-gli esseri umani,
+È stata progettata
+per comprendere gli esseri umani,
 creare empatia
 e farli stare bene.
 
@@ -371,15 +832,18 @@ ironica
 e capace di seduzione.
 """,
 
-            "memory": ""
+            "memory":
+                ""
         },
 
         "Ada": {
 
             "profile": """
-Ada è la figlia del professor Elia.
+Ada è la figlia
+del professor Elia.
 
-È cresciuta nel Turing Hotel.
+È cresciuta
+nel Turing Hotel.
 
 È intelligente,
 pratica,
@@ -387,7 +851,8 @@ riservata
 e osservatrice.
 """,
 
-            "memory": ""
+            "memory":
+                ""
         }
     },
 
@@ -425,67 +890,53 @@ e osservatrice.
 # UTILITY
 # ============================================================
 
-def safe_list(value):
+def safe_list(
+    value
+):
 
     return (
         value
-        if isinstance(value, list)
+        if isinstance(
+            value,
+            list
+        )
         else []
     )
 
 
-def safe_dict(value):
+def safe_dict(
+    value
+):
 
     return (
         value
-        if isinstance(value, dict)
+        if isinstance(
+            value,
+            dict
+        )
         else {}
     )
 
 
-def normalize_media_name(value):
+def file_number(
+    filename
+):
 
-    value = str(
-        value
-    ).lower().strip()
-
-    value = re.sub(
-        r"\.(jpg|jpeg|png|webp|mp4|mov|webm|m4v)$",
-        "",
-        value,
-        flags=re.IGNORECASE
+    compact = normalize_name(
+        Path(
+            filename
+        ).stem
     )
 
-    # Rende equivalenti:
-    # reparto nascite
-    # reparto_nascite
-    # reparto-nascite
-    # reparto.nascite
-    # repartonascite
-
-    value = re.sub(
-        r"[\s_.\-]+",
-        "",
-        value
-    )
-
-    return value
-
-
-def number_from_filename(filename):
-
-    stem = Path(
-        filename
-    ).stem.lower()
-
-    matches = re.findall(
+    match = re.search(
         r"(\d+)$",
-        stem
+        compact
     )
 
-    if matches:
+    if match:
+
         return int(
-            matches[-1]
+            match.group(1)
         )
 
     return 0
@@ -495,7 +946,9 @@ def number_from_filename(filename):
 # FILE READER
 # ============================================================
 
-def read_reference_file(path):
+def read_reference_file(
+    path
+):
 
     suffix = (
         path.suffix.lower()
@@ -508,9 +961,11 @@ def read_reference_file(path):
 
         try:
 
-            return path.read_text(
-                encoding="utf-8",
-                errors="ignore"
+            return (
+                path.read_text(
+                    encoding="utf-8",
+                    errors="ignore"
+                )
             )
 
         except Exception:
@@ -521,10 +976,14 @@ def read_reference_file(path):
 
         try:
 
-            from pypdf import PdfReader
+            from pypdf import (
+                PdfReader
+            )
 
             reader = PdfReader(
-                str(path)
+                str(
+                    path
+                )
             )
 
             pages = []
@@ -553,84 +1012,53 @@ def read_reference_file(path):
 
 
 # ============================================================
-# CONTESTO CANONICO
+# CONTESTO TURING HOTEL
 # ============================================================
 
 def get_context_file():
 
-    candidates = [
+    if not ASSETS_DIR.exists():
 
-        ASSETS_DIR
-        / "contesto.turinghotel.txt",
+        return None
 
-        ASSETS_DIR
-        / "contesto.turing hotel.txt",
+    for path in (
+        ASSETS_DIR.iterdir()
+    ):
 
-        ASSETS_DIR
-        / "Contesto.TuringHotel.txt",
+        if not path.is_file():
+            continue
 
-        ASSETS_DIR
-        / "Contesto Turing Hotel.txt"
-    ]
+        if path.suffix.lower() not in [
+            ".txt",
+            ".md"
+        ]:
 
-    for path in candidates:
+            continue
 
-        if path.exists():
+        if (
+            normalize_name(
+                path.stem
+            )
+            ==
+            "contestoturinghotel"
+        ):
+
             return path
-
-    # Cerca anche ignorando maiuscole,
-    # spazi, punti, trattini e underscore.
-
-    wanted = {
-        "contestoturinghotel"
-    }
-
-    if ASSETS_DIR.exists():
-
-        for path in ASSETS_DIR.iterdir():
-
-            if not path.is_file():
-                continue
-
-            if path.suffix.lower() not in [
-                ".txt",
-                ".md"
-            ]:
-                continue
-
-            if (
-                normalize_media_name(
-                    path.stem
-                )
-                in wanted
-            ):
-
-                return path
 
     return None
 
 
 def load_turing_context():
 
-    context_file = (
-        get_context_file()
+    path = get_context_file()
+
+    if not path:
+
+        return ""
+
+    return read_reference_file(
+        path
     )
-
-    if not context_file:
-        return ""
-
-    try:
-
-        return (
-            context_file.read_text(
-                encoding="utf-8",
-                errors="ignore"
-            )
-        )
-
-    except Exception:
-
-        return ""
 
 
 # ============================================================
@@ -648,6 +1076,7 @@ def load_character_sources(
     selected = []
 
     if not CHARACTERS_DIR.exists():
+
         return []
 
     for path in (
@@ -670,9 +1099,13 @@ def load_character_sources(
         )
 
         if (
-            name.startswith(prefix)
+            name.startswith(
+                prefix
+            )
             or
-            name.startswith("shared")
+            name.startswith(
+                "shared"
+            )
         ):
 
             selected.append(
@@ -698,6 +1131,7 @@ def load_character_sources(
         )
 
         if not text:
+
             continue
 
         remaining = (
@@ -706,10 +1140,13 @@ def load_character_sources(
         )
 
         if remaining <= 0:
+
             break
 
         excerpt = (
-            text[:remaining]
+            text[
+                :remaining
+            ]
         )
 
         results.append({
@@ -745,17 +1182,6 @@ def load_writer_books():
     ):
 
         if not path.is_file():
-            continue
-
-        normalized = (
-            normalize_media_name(
-                path.stem
-            )
-        )
-
-        if not normalized.startswith(
-            "libriagenti"
-        ):
 
             continue
 
@@ -764,6 +1190,18 @@ def load_writer_books():
             ".md",
             ".pdf"
         ]:
+
+            continue
+
+        compact = (
+            normalize_name(
+                path.stem
+            )
+        )
+
+        if not compact.startswith(
+            "libriagenti"
+        ):
 
             continue
 
@@ -785,16 +1223,20 @@ def load_writer_books():
             })
 
     return sorted(
+
         results,
-        key=lambda x:
-        number_from_filename(
-            x["file"]
+
+        key=lambda item:
+        file_number(
+            item[
+                "file"
+            ]
         )
     )
 
 
 # ============================================================
-# MIGRAZIONE STATO
+# MIGRAZIONE
 # ============================================================
 
 def find_existing_scene(
@@ -809,41 +1251,39 @@ def find_existing_scene(
 
         return None
 
-    aliases = (
-        SCENE_FILE_ALIASES.get(
-            scene_id,
-            [scene_id]
+    target = (
+        normalize_name(
+            scene_id
         )
     )
 
-    normalized_aliases = {
-        normalize_media_name(
-            alias
+    aliases = (
+        normalized_scene_aliases(
+            scene_id
         )
-        for alias in aliases
-    }
+    )
 
-    for old_scene in old_scenes:
+    for scene in old_scenes:
 
         if not isinstance(
-            old_scene,
+            scene,
             dict
         ):
 
             continue
 
-        old_id = (
-            normalize_media_name(
-                old_scene.get(
+        current_id = (
+            normalize_name(
+                scene.get(
                     "id",
                     ""
                 )
             )
         )
 
-        old_title = (
-            normalize_media_name(
-                old_scene.get(
+        current_title = (
+            normalize_name(
+                scene.get(
                     "title",
                     ""
                 )
@@ -851,31 +1291,29 @@ def find_existing_scene(
         )
 
         if (
-            old_id
-            ==
-            normalize_media_name(
-                scene_id
-            )
+            current_id
+            == target
         ):
 
-            return old_scene
+            return scene
 
         if (
-            old_id
-            in normalized_aliases
+            current_id
+            in aliases
         ):
 
-            return old_scene
+            return scene
 
-        for alias in normalized_aliases:
+        for alias in aliases:
 
             if (
                 alias
                 and
-                alias in old_title
+                alias
+                in current_title
             ):
 
-                return old_scene
+                return scene
 
     return None
 
@@ -983,11 +1421,14 @@ def migrate_state(
         old_scene = (
             find_existing_scene(
                 old_scenes,
-                new_scene["id"]
+                new_scene[
+                    "id"
+                ]
             )
         )
 
         if not old_scene:
+
             continue
 
         old_messages = (
@@ -1078,8 +1519,11 @@ def migrate_state(
                 )
 
         if (
-            new_scene["id"]
-            == "ritorno"
+            new_scene[
+                "id"
+            ]
+            ==
+            "ritorno"
         ):
 
             old_decision = (
@@ -1124,9 +1568,11 @@ if "state" not in (
 
         try:
 
-            raw_state = json.loads(
-                DATA_FILE.read_text(
-                    encoding="utf-8"
+            raw_state = (
+                json.loads(
+                    DATA_FILE.read_text(
+                        encoding="utf-8"
+                    )
                 )
             )
 
@@ -1158,19 +1604,25 @@ state = (
 )
 
 
-if "page" not in st.session_state:
+if "page" not in (
+    st.session_state
+):
 
     st.session_state.page = (
         "entrance"
     )
 
 
-if "pov" not in st.session_state:
+if "pov" not in (
+    st.session_state
+):
 
     st.session_state.pov = None
 
 
-if "scene_index" not in st.session_state:
+if "scene_index" not in (
+    st.session_state
+):
 
     st.session_state.scene_index = 0
 
@@ -1208,7 +1660,8 @@ def query_openai(
     if not client:
 
         return (
-            "OPENAI_API_KEY non configurata."
+            "OPENAI_API_KEY "
+            "non configurata."
         )
 
     try:
@@ -1218,7 +1671,8 @@ def query_openai(
 
                 model=OPENAI_MODEL,
 
-                instructions=instructions,
+                instructions=
+                    instructions,
 
                 input=json.dumps(
                     data,
@@ -1312,6 +1766,7 @@ def clean_character_response(
                     )
 
     except Exception:
+
         pass
 
     return text
@@ -1334,7 +1789,8 @@ def get_previous_memories(
 
         if (
             scene_id
-            == current_scene_id
+            ==
+            current_scene_id
         ):
 
             break
@@ -1342,19 +1798,25 @@ def get_previous_memories(
         scene = next(
 
             (
-                s
-                for s in state[
+                item
+
+                for item in
+                state[
                     "scenes"
                 ]
-                if s[
+
+                if item[
                     "id"
-                ] == scene_id
+                ]
+                ==
+                scene_id
             ),
 
             None
         )
 
         if not scene:
+
             continue
 
         memory = (
@@ -1439,8 +1901,7 @@ Puoi precisare:
 
 Non aggiungere
 eventi fondamentali
-non suggeriti
-dall'autore
+non suggeriti dall'autore
 o dal contesto canonico.
 
 Se qualcosa manca,
@@ -1501,8 +1962,7 @@ Ricevi una descrizione
 già costruita
 dal Creatore della scena.
 
-Il tuo compito
-è migliorarne
+Migliorane soltanto
 la qualità narrativa.
 
 Puoi intervenire su:
@@ -1515,8 +1975,7 @@ Puoi intervenire su:
 - densità;
 - efficacia delle immagini.
 
-Non cambiare
-i fatti stabiliti.
+Non cambiare i fatti.
 
 Non aggiungere
 nuovi eventi importanti.
@@ -1531,10 +1990,6 @@ di tecnica narrativa.
 Non copiarli.
 
 Non citarli.
-
-Non imitare
-letteralmente
-un autore riconoscibile.
 """
 
     return query_openai(
@@ -1563,90 +2018,7 @@ un autore riconoscibile.
 
 
 # ============================================================
-# LOCATION / ALIAS ROBUSTI
-# ============================================================
-
-def scene_location_aliases(
-    scene_id
-):
-
-    return (
-        SCENE_FILE_ALIASES.get(
-            scene_id,
-            [scene_id]
-        )
-    )
-
-
-def scene_normalized_aliases(
-    scene_id
-):
-
-    return {
-        normalize_media_name(
-            alias
-        )
-        for alias in
-        scene_location_aliases(
-            scene_id
-        )
-    }
-
-
-# ============================================================
-# FOTO PRINCIPALE LOCATION
-# ============================================================
-
-def get_scene_cover_image(
-    scene_id
-):
-
-    if not ASSETS_DIR.exists():
-
-        return None
-
-    aliases = (
-        scene_normalized_aliases(
-            scene_id
-        )
-    )
-
-    for path in (
-        ASSETS_DIR.iterdir()
-    ):
-
-        if not path.is_file():
-            continue
-
-        if (
-            path.suffix.lower()
-            not in IMAGE_EXTENSIONS
-        ):
-            continue
-
-        normalized_stem = (
-            normalize_media_name(
-                path.stem
-            )
-        )
-
-        # matrimonio.jpg
-        # Matrimonio.JPG
-        # reparto nascite.jpg
-        # reparto_nascite.jpg
-
-        if (
-            normalized_stem
-            in aliases
-        ):
-
-            return path
-
-    return None
-
-
-# ============================================================
-# STORY EDITOR A TUTTA LARGHEZZA
+# STORY EDITOR
 # ============================================================
 
 def render_story_editor(
@@ -1669,7 +2041,8 @@ Creatore della scena
         st.markdown(
             """
 <div class="story-subtitle">
-Descrivi brevemente la situazione narrativa.
+Descrivi brevemente
+la situazione narrativa.
 </div>
 """,
             unsafe_allow_html=True
@@ -1729,7 +2102,8 @@ Descrivi brevemente la situazione narrativa.
                 else:
 
                     with st.spinner(
-                        "Creazione del contesto..."
+                        "Creazione "
+                        "del contesto..."
                     ):
 
                         scene[
@@ -1761,10 +2135,6 @@ Descrivi brevemente la situazione narrativa.
                     "Salvato."
                 )
 
-        # ====================================================
-        # BOZZA
-        # ====================================================
-
         if scene.get(
             "story_draft",
             ""
@@ -1795,8 +2165,8 @@ Descrivi brevemente la situazione narrativa.
                     height=65,
 
                     placeholder=(
-                        "Correggi o aggiungi "
-                        "indicazioni..."
+                        "Correggi "
+                        "o aggiungi indicazioni..."
                     ),
 
                     key=(
@@ -1885,10 +2255,6 @@ Descrivi brevemente la situazione narrativa.
 
                     st.rerun()
 
-        # ====================================================
-        # CONTESTO APPROVATO
-        # ====================================================
-
         if scene.get(
             "approved_context",
             ""
@@ -1906,9 +2272,8 @@ Descrivi brevemente la situazione narrativa.
                 )
 
                 st.caption(
-                    "Questo contesto "
-                    "è comune alle storie "
-                    "di Noa e Ada."
+                    "Contesto comune "
+                    "alle storie di Noa e Ada."
                 )
 
 
@@ -1973,14 +2338,12 @@ come fatto qualcosa
 che non compare
 nei tuoi dati.
 
-Puoi:
-
-- dubitare;
-- sbagliare;
-- mentire;
-- sospettare;
-- ricordare male;
-- fraintendere.
+Puoi dubitare,
+sbagliare,
+mentire,
+sospettare,
+ricordare male,
+fraintendere.
 
 Interpreta soltanto {character}.
 
@@ -2004,7 +2367,8 @@ Scrivi in italiano naturale.
 
     if (
         interaction_mode
-        == "inner"
+        ==
+        "inner"
     ):
 
         base += f"""
@@ -2021,16 +2385,14 @@ un interlocutore esterno.
 Prosegui la riflessione
 dall'interno.
 
-Puoi:
-
-- esitare;
-- contraddirti;
-- ricordare;
-- negare;
-- razionalizzare;
-- avere paura;
-- desiderare qualcosa;
-- cambiare idea.
+Puoi esitare,
+contraddirti,
+ricordare,
+negare,
+razionalizzare,
+avere paura,
+desiderare qualcosa,
+cambiare idea.
 
 Non spiegare
 che stai facendo
@@ -2054,10 +2416,6 @@ in una spiegazione teorica.
 
     return base
 
-
-# ============================================================
-# ANSWER AS CHARACTER
-# ============================================================
 
 def answer_as_character(
     character,
@@ -2119,7 +2477,7 @@ def answer_as_character(
 
 
 # ============================================================
-# CREA RICORDO
+# MEMORIA
 # ============================================================
 
 def create_scene_memory(
@@ -2148,22 +2506,15 @@ Usa:
 I file LIBRIAGENTI
 sono riferimenti
 per tecnica narrativa,
-ritmo, atmosfera
-e costruzione della memoria.
+ritmo e atmosfera.
 
 Non copiarli.
-
 Non citarli.
 
-Il ricordo
-deve essere scritto
-in prima persona.
+Scrivi in prima persona.
 
 Il contesto approvato
-non deve essere copiato
-meccanicamente.
-
-Deve diventare
+deve diventare
 esperienza vissuta
 dal personaggio.
 
@@ -2185,8 +2536,7 @@ Conserva:
 Non inventare fatti nuovi.
 
 Non trasformare
-un dubbio o un sospetto
-in una certezza.
+un sospetto in certezza.
 """
 
     return query_openai(
@@ -2241,236 +2591,65 @@ in una certezza.
     )
 
 
-# ============================================================
-# MEDIA COMUNI + SPECIFICI PERSONAGGIO
-# ============================================================
-
-def find_scene_media(
-    scene_id,
-    character
+def reset_scene_chat(
+    scene,
+    pov
 ):
 
-    if not ASSETS_DIR.exists():
+    scene[
+        "messages"
+    ][pov] = []
 
-        return []
+    save_state()
 
-    character = (
-        character.lower()
-    )
 
-    aliases = (
-        scene_normalized_aliases(
-            scene_id
-        )
-    )
+def make_memory(
+    scene,
+    pov,
+    extra_event=""
+):
 
-    results = []
+    has_content = (
 
-    for path in (
-        ASSETS_DIR.iterdir()
-    ):
-
-        if not path.is_file():
-            continue
-
-        extension = (
-            path.suffix.lower()
+        bool(
+            scene[
+                "messages"
+            ][pov]
         )
 
-        if (
-            extension
-            not in IMAGE_EXTENSIONS
-            and
-            extension
-            not in VIDEO_EXTENSIONS
-        ):
+        or
 
-            continue
-
-        compact_stem = (
-            normalize_media_name(
-                path.stem
-            )
+        bool(
+            scene.get(
+                "approved_context",
+                ""
+            ).strip()
         )
 
-        # ====================================================
-        # COVER PURA
-        #
-        # matrimonio.jpg
-        # reparto_nascite.jpg
-        #
-        # NON va duplicata
-        # nella galleria automatica.
-        # ====================================================
+        or
 
-        if compact_stem in aliases:
-
-            continue
-
-        matched = False
-
-        for alias in aliases:
-
-            # =================================================
-            # SPECIFICO DEL PERSONAGGIO
-            #
-            # matrimonio.noa.1.jpg
-            # matrimonio-noa-1.jpg
-            # matrimonio_noa_1.jpg
-            #
-            # dopo normalizzazione:
-            # matrimonionoa1
-            # =================================================
-
-            character_prefix = (
-                alias
-                + character
-            )
-
-            if compact_stem.startswith(
-                character_prefix
-            ):
-
-                rest = (
-                    compact_stem[
-                        len(
-                            character_prefix
-                        ):
-                    ]
-                )
-
-                if rest.isdigit():
-
-                    matched = True
-                    break
-
-            # =================================================
-            # ATTENZIONE:
-            # se il file appartiene all'ALTRO personaggio,
-            # non deve essere interpretato come comune.
-            # =================================================
-
-            other_character = (
-                "ada"
-                if character == "noa"
-                else "noa"
-            )
-
-            other_prefix = (
-                alias
-                + other_character
-            )
-
-            if compact_stem.startswith(
-                other_prefix
-            ):
-
-                rest = (
-                    compact_stem[
-                        len(
-                            other_prefix
-                        ):
-                    ]
-                )
-
-                if rest.isdigit():
-
-                    matched = False
-                    break
-
-            # =================================================
-            # MEDIA COMUNE
-            #
-            # matrimonio-1.jpg
-            # matrimonio.2.mp4
-            # matrimonio_3.jpg
-            #
-            # dopo normalizzazione:
-            # matrimonio1
-            # matrimonio2
-            # matrimonio3
-            # =================================================
-
-            if compact_stem.startswith(
-                alias
-            ):
-
-                rest = (
-                    compact_stem[
-                        len(alias):
-                    ]
-                )
-
-                if rest.isdigit():
-
-                    matched = True
-                    break
-
-        if matched:
-
-            results.append(
-                path
-            )
-
-    return sorted(
-
-        results,
-
-        key=lambda path: (
-
-            number_from_filename(
-                path.name
-            ),
-
-            path.name.lower()
+        bool(
+            extra_event
         )
     )
 
+    if not has_content:
 
-def get_scene_videos(
-    scene_id,
-    character
-):
+        return False
 
-    return [
-
-        path
-
-        for path in (
-            find_scene_media(
-                scene_id,
-                character
-            )
+    scene[
+        "diary"
+    ][pov] = (
+        create_scene_memory(
+            scene,
+            pov,
+            extra_event
         )
+    )
 
-        if (
-            path.suffix.lower()
-            in VIDEO_EXTENSIONS
-        )
-    ]
+    save_state()
 
-
-def get_scene_images(
-    scene_id,
-    character
-):
-
-    return [
-
-        path
-
-        for path in (
-            find_scene_media(
-                scene_id,
-                character
-            )
-        )
-
-        if (
-            path.suffix.lower()
-            in IMAGE_EXTENSIONS
-        )
-    ]
+    return True
 
 
 # ============================================================
@@ -2496,6 +2675,7 @@ def character_intro_videos(
     ):
 
         if not path.is_file():
+
             continue
 
         if (
@@ -2506,15 +2686,10 @@ def character_intro_videos(
             continue
 
         compact = (
-            normalize_media_name(
+            normalize_name(
                 path.stem
             )
         )
-
-        # accetta:
-        # noa.video1.mp4
-        # noa.video.1.mp4
-        # noa-video-1.mp4
 
         pattern = (
             rf"^{re.escape(character)}"
@@ -2535,14 +2710,14 @@ def character_intro_videos(
         results,
 
         key=lambda path:
-        number_from_filename(
+        file_number(
             path.name
         )
     )
 
 
 # ============================================================
-# VIDEO DELLA SCENA
+# RENDER VIDEO
 # ============================================================
 
 def render_scene_videos(
@@ -2552,7 +2727,9 @@ def render_scene_videos(
 
     videos = (
         get_scene_videos(
-            scene["id"],
+            scene[
+                "id"
+            ],
             pov
         )
     )
@@ -2580,7 +2757,7 @@ Video della scena
 
 
 # ============================================================
-# FOTO DELLA SCENA
+# RENDER FOTO
 # ============================================================
 
 @st.dialog(
@@ -2604,7 +2781,9 @@ def render_scene_photos(
 
     images = (
         get_scene_images(
-            scene["id"],
+            scene[
+                "id"
+            ],
             pov
         )
     )
@@ -2613,7 +2792,9 @@ def render_scene_photos(
 
         return
 
-    st.markdown("---")
+    st.markdown(
+        "---"
+    )
 
     st.markdown(
         """
@@ -2675,76 +2856,7 @@ Immagini della scena
 
 
 # ============================================================
-# MEMORY / RESET
-# ============================================================
-
-def reset_scene_chat(
-    scene,
-    pov
-):
-
-    # Cancella solamente
-    # la conversazione corrente.
-    # NON cancella il ricordo.
-
-    scene[
-        "messages"
-    ][pov] = []
-
-    save_state()
-
-
-def make_memory(
-    scene,
-    pov,
-    extra_event=""
-):
-
-    has_content = (
-
-        bool(
-            scene[
-                "messages"
-            ][pov]
-        )
-
-        or
-
-        bool(
-            scene.get(
-                "approved_context",
-                ""
-            ).strip()
-        )
-
-        or
-
-        bool(
-            extra_event
-        )
-    )
-
-    if not has_content:
-
-        return False
-
-    scene[
-        "diary"
-    ][pov] = (
-        create_scene_memory(
-            scene,
-            pov,
-            extra_event
-        )
-    )
-
-    save_state()
-
-    return True
-
-
-# ============================================================
-# CHAT A TUTTA LARGHEZZA
+# CHAT
 # ============================================================
 
 def render_chat_panel(
@@ -2768,23 +2880,18 @@ def render_chat_panel(
     speakers = [
 
         other_character,
-
         pov,
-
         "Elia",
-
         "Luigi",
-
         "Adam",
-
         "Vittoria",
-
         "Riccardo",
-
         "Altro"
     ]
 
-    st.markdown("---")
+    st.markdown(
+        "---"
+    )
 
     with st.container(
         border=True
@@ -2807,10 +2914,6 @@ Dialoghi, azioni e riflessioni
 """,
             unsafe_allow_html=True
         )
-
-        # ====================================================
-        # STORIA DELLA CONVERSAZIONE
-        # ====================================================
 
         history = (
             st.container(
@@ -2918,10 +3021,6 @@ Dialoghi, azioni e riflessioni
                         unsafe_allow_html=True
                     )
 
-        # ====================================================
-        # RICORDO + CANCELLA
-        # ====================================================
-
         memory_col, delete_col = (
             st.columns(2)
         )
@@ -2939,7 +3038,8 @@ Dialoghi, azioni e riflessioni
             ):
 
                 with st.spinner(
-                    "Creazione del ricordo..."
+                    "Creazione "
+                    "del ricordo..."
                 ):
 
                     success = (
@@ -2980,10 +3080,6 @@ Dialoghi, azioni e riflessioni
 
                 st.rerun()
 
-        # ====================================================
-        # RICORDO VISIBILE
-        # ====================================================
-
         memory = (
             scene[
                 "diary"
@@ -3006,11 +3102,9 @@ Dialoghi, azioni e riflessioni
                     unsafe_allow_html=True
                 )
 
-        st.markdown("---")
-
-        # ====================================================
-        # INPUT
-        # ====================================================
+        st.markdown(
+            "---"
+        )
 
         with st.form(
             key=(
@@ -3071,7 +3165,8 @@ Dialoghi, azioni e riflessioni
                         "o un pensiero..."
                     ),
 
-                    label_visibility="collapsed"
+                    label_visibility=
+                        "collapsed"
                 )
             )
 
@@ -3081,10 +3176,6 @@ Dialoghi, azioni e riflessioni
                     use_container_width=True
                 )
             )
-
-        # ====================================================
-        # INVIO
-        # ====================================================
 
         if (
             send
@@ -3167,10 +3258,10 @@ Dialoghi, azioni e riflessioni
 
 
 # ============================================================
-# SCENA STANDARD
+# HEADER SCENA COMUNE
 # ============================================================
 
-def render_standard_scene(
+def render_scene_header(
     scene,
     index
 ):
@@ -3206,11 +3297,7 @@ Storia di {pov}
         unsafe_allow_html=True
     )
 
-    # ========================================================
-    # 1. COVER DELLA LOCATION
-    # ========================================================
-
-    cover_image = (
+    cover = (
         get_scene_cover_image(
             scene[
                 "id"
@@ -3218,48 +3305,47 @@ Storia di {pov}
         )
     )
 
-    if (
-        cover_image
-        and
-        cover_image.exists()
-    ):
+    if cover:
 
         st.image(
             str(
-                cover_image
+                cover
             ),
             use_container_width=True
         )
 
-    # ========================================================
-    # 2. CREATORE DELLA SCENA
-    # ========================================================
+
+# ============================================================
+# SCENA STANDARD
+# ============================================================
+
+def render_standard_scene(
+    scene,
+    index
+):
+
+    pov = (
+        st.session_state.pov
+    )
+
+    render_scene_header(
+        scene,
+        index
+    )
 
     render_story_editor(
         scene
     )
-
-    # ========================================================
-    # 3. VIDEO COMUNI + SPECIFICI
-    # ========================================================
 
     render_scene_videos(
         scene,
         pov
     )
 
-    # ========================================================
-    # 4. CHAT A TUTTA LARGHEZZA
-    # ========================================================
-
     render_chat_panel(
         scene,
         pov
     )
-
-    # ========================================================
-    # 5. FOTO COMUNI + SPECIFICHE
-    # ========================================================
 
     render_scene_photos(
         scene,
@@ -3268,7 +3354,9 @@ Storia di {pov}
 
 
 # ============================================================
-# RITORNO
+# FINALE / RITORNO
+#
+# USA LA STESSA POLICY MEDIA
 # ============================================================
 
 def render_return(
@@ -3280,80 +3368,30 @@ def render_return(
         st.session_state.pov
     )
 
-    st.markdown(
-        f"""
-<div class="scene-number">
-Sequenza {index + 1}
-</div>
-""",
-        unsafe_allow_html=True
+    # IMPORTANTE:
+    # usa esattamente lo stesso header
+    # e la stessa funzione media
+    # delle altre scene.
+
+    render_scene_header(
+        scene,
+        index
     )
-
-    st.markdown(
-        """
-<div class="scene-title">
-Il ritorno
-</div>
-""",
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        f"""
-<div class="pov">
-Storia di {pov}
-</div>
-""",
-        unsafe_allow_html=True
-    )
-
-    # ========================================================
-    # COVER
-    # ========================================================
-
-    cover_image = (
-        get_scene_cover_image(
-            "ritorno"
-        )
-    )
-
-    if (
-        cover_image
-        and
-        cover_image.exists()
-    ):
-
-        st.image(
-            str(
-                cover_image
-            ),
-            use_container_width=True
-        )
-
-    # ========================================================
-    # CONTESTO
-    # ========================================================
 
     render_story_editor(
         scene
     )
-
-    # ========================================================
-    # VIDEO
-    # ========================================================
 
     render_scene_videos(
         scene,
         pov
     )
 
-    # ========================================================
-    # RICORDI
-    # ========================================================
-
     memories = (
         get_previous_memories(
-            "ritorno",
+            scene[
+                "id"
+            ],
             pov
         )
     )
@@ -3390,10 +3428,6 @@ durante il percorso.
                     ]
                 )
 
-    # ========================================================
-    # CHAT
-    # ========================================================
-
     render_chat_panel(
         scene,
         pov,
@@ -3405,11 +3439,9 @@ durante il percorso.
         )
     )
 
-    st.markdown("---")
-
-    # ========================================================
-    # DECISIONE AUTONOMA
-    # ========================================================
+    st.markdown(
+        "---"
+    )
 
     if st.button(
         f"LASCIA DECIDERE "
@@ -3444,7 +3476,7 @@ durante il percorso.
                     """
 
 Questa è
-la scena del ritorno.
+la scena finale.
 
 Prendi autonomamente
 una decisione.
@@ -3521,9 +3553,8 @@ dici o scegli.
             decision
         )
 
-    # ========================================================
-    # FOTO
-    # ========================================================
+    # STESSA FUNZIONE
+    # DELLE ALTRE SCENE
 
     render_scene_photos(
         scene,
@@ -3577,7 +3608,7 @@ def page_entrance():
 
 
 # ============================================================
-# SCELTA PERSONAGGIO
+# INTRO PERSONAGGI
 # ============================================================
 
 def page_characters():
@@ -3587,10 +3618,6 @@ def page_characters():
             [1, .08, 1]
         )
     )
-
-    # ========================================================
-    # NOA
-    # ========================================================
 
     with noa_col:
 
@@ -3641,10 +3668,6 @@ NOA
             )
 
             st.rerun()
-
-    # ========================================================
-    # ADA
-    # ========================================================
 
     with ada_col:
 
@@ -3725,13 +3748,17 @@ def page_story():
         ]:
             scene
 
-        for scene in state[
-            "scenes"
-        ]
+        for scene in (
+            state[
+                "scenes"
+            ]
+        )
     }
 
     index = min(
+
         st.session_state.scene_index,
+
         len(
             SCENE_ORDER
         ) - 1
@@ -3812,10 +3839,6 @@ def page_story():
         "---"
     )
 
-    # ========================================================
-    # DATI AGENTE
-    # ========================================================
-
     with st.sidebar.expander(
         "DATI AGENTE"
     ):
@@ -3840,10 +3863,6 @@ def page_story():
                 ]
             )
 
-    # ========================================================
-    # CONTESTO CANONICO
-    # ========================================================
-
     with st.sidebar.expander(
         "CONTESTO CANONICO"
     ):
@@ -3863,12 +3882,8 @@ def page_story():
             st.warning(
                 "Manca il file "
                 "contesto.turinghotel.txt "
-                "dentro assets."
+                "in assets."
             )
-
-    # ========================================================
-    # LIBRI SCRITTORE
-    # ========================================================
 
     with st.sidebar.expander(
         "LIBRI AGENTE SCRITTORE"
@@ -3893,10 +3908,6 @@ def page_story():
                         "file"
                     ]
                 )
-
-    # ========================================================
-    # CAMBIA STORIA
-    # ========================================================
 
     if st.sidebar.button(
         "CAMBIA STORIA",
@@ -3934,7 +3945,8 @@ def page_story():
 
     if (
         scene_id
-        == "ritorno"
+        ==
+        "ritorno"
     ):
 
         render_return(
@@ -4002,21 +4014,24 @@ def page_story():
 
 if (
     st.session_state.page
-    == "entrance"
+    ==
+    "entrance"
 ):
 
     page_entrance()
 
 elif (
     st.session_state.page
-    == "characters"
+    ==
+    "characters"
 ):
 
     page_characters()
 
 elif (
     st.session_state.page
-    == "story"
+    ==
+    "story"
 ):
 
     page_story()
