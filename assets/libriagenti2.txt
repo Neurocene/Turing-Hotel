@@ -1,0 +1,660 @@
+Table of Contents
+
+Introduction
+
+Fantasy Conceits, Analogue Cultures & Subgenres
+
+General Questions
+
+Geography
+
+Biology
+
+Physics (Magic!)
+
+Metaphysics
+
+Technology
+
+Culture
+
+Glossary
+
+Worldbuilding Worksheets
+
+Additional Resources
+
+
+
+
+
+Introduction
+
+
+
+It would be easy to call worldbuilding an art since it is a creative act wherein the builder fashions something new for others to enjoy. But “art” can be a loaded term, one full of pretension and preening, so perhaps it is best to call worldbuilding a craft, in that it is a skill one hones over time. Craft is a component of art, after all, and every artist, be they a painter, musician, poet, or author, must spend time increasing their skill so it can match their artistic vision.
+
+The aim of this handout is to help with the refinement of your personal craft in order that you have the honed skills required to fashion your own world.
+
+Over the course of researching and writing Worldbuilding For Fantasy Fans And Authors , a deep dive into the theory and practice of fantasy worldbuilding, I noticed several patterns within the field. I also ended up with a collection of over 700 worldbuilding prompts compiled from fellow fantasy authors, video-game developers, and the RPG community, the most pertinent of which I’ll be sharing here. Mastering the act of worldbuilding is a long and arduous journey in the same way learning to paint, sing, or write is, and these prompts are meant as a starting point for burgeoning worldbuilders in order to set them on the right path. This handout is aimed at fantasy authors but can certainly be used in creating a homebrew campaign or just a thought experiment to kill a few minutes.
+
+
+
+The two major strategies for worldbuilding are top-down , in which the creator envisions the rules of the world ahead of time and begins with large ideas that gradually filter down into smaller details, and bottom-up , where the creator begins with the granular details and gradually constructs an overarching system by stringing these ideas together into a coherent whole. Each strategy has its own strengths and weaknesses, although what most people overlook is that audiences encounter the worlds from the inside-out , meaning one ground-level detail at a time. This term is borrowed from the RPG community and means that audiences care mostly about the details that pertain to that specific gaming session, with only a small amount of attention set aside for details that may lead to future campaigns that open the world up. With each new campaign session, the world comes into clearer focus as the players explore new regions and discover how the world’s history and cultures intertwine.
+
+In this regard, the purpose of these questions is twofold: For bottom-up creators, it’s a questionnaire to help them figure out their fantasy conceits, which we’ll cover in the next few pages. For top-down designers, it’s a chance to refine their big ideas and see how the output details can add specificity to the world for their audiences to process from the inside out.
+
+
+
+
+
+Fantasy Conceits, Analogue Cultures & Subgenres
+
+
+
+Tolkien noted in his lectures on worldbuilding back in 1939 that audiences use their understanding of the real world to assess the strength of worldbuilding, a fact echoed by Hugo and Nebula winning author N. K. Jemisin in her workshops on worldbuilding. This means most fantasy worldbuilding breaks into two components: fantasy conceits and analogue cultures . Fantasy conceits are how the fantasy world you are constructing deviates from the real world we are all familiar with, whereas analogue cultures are real-world societies and time periods we use as a baseline for the fantasy conceits to deviate from.
+
+The success of both fantasy conceits and analogue cultures hinges on the audience’s authentic experience of details within the world, which is why it is important to get both right. For analogue cultures, this means nailing not just the big details of their societies, such as what weapons or armor they use, but also the little things, such as what they ate, what songs they sing, how they pass their history from one generation to the next, and how they care for their kids. There’s a reason that when surveyed, fantasy fans picked history as the top field for assessing the effectiveness of fantasy worldbuilding.
+
+
+
+In terms of fantasy conceits, getting the details right entails an understanding of many different fields, ranging from geology to physics. It is also a matter of extrapolation and speculation in deciding how you think the constructed world would deviate from the real-world due to the introduction of your fantasy conceits. Fantasy conceits generally move from large-scale components on to smaller components, flowing in the order of Geography to Biology to Physics (magic) to Metaphysics to Technology to Culture. Not every constructed world will contain fantasy conceits in each of these categories, although all will contain the category of Culture since all characters come from a culture of some form. Fantasy conceits also generally manifest themselves in the following ways:
+
+Exsecting : When something is removed from the world, such as standing water, iron, or horses.
+
+Unchanged : When the world mimics our own, although it may be named something else.
+
+Divergent : When the constructed world takes a different course in one major way but basically remains the same—e.g., a world where humanoids evolved from cats instead of apes.
+
+Additive : When a fantasy conceit is added to the constructed world, be it magic, dragons, or impossible technologies.
+
+
+
+
+
+Fantasy conceits and analogue cultures play another integral role in fantasy worldbuilding, in that they are used to denote subgenres. Analogue culture subgenres are pretty easy to spot, including Arthurian, Arabian, wuxia, urban, historical, gaslamp, and mythic fantasy. Each of these connotes a specific culture or time period from which the author is drawing from. In terms of fantasy conceits, both high/epic fantasy and low fantasy (to a much lesser degree) deal with the introduction of magic and impossible creatures, such as elves and dragons, which fall under the Physics and Biology categories. Steampunk, flintlock, litRPG, science, and military fantasy all depend on a Technology conceit. This is by no means an exhaustive list, but it should hopefully demonstrate the importance of what analogue cultures and fantasy conceits you choose when building your world.
+
+With that in mind, it’s time to get to the questions. For the top-downers (“planners,” as they’re often known), this should be a matter of keeping your fantasy conceits in mind and answering the sections that pertain to them. For the bottom-uppers (“pantsers” in the parlance), it might be wise to answer all the sections and see which sections you completed the most questions in to figure out your conceits. Once they’re uncovered, extrapolating from them for further worldbuilding should be much easier.
+
+
+
+
+
+General Questions
+
+
+
+1. What subgenre will you be working in?
+
+This matters because each subgenre has certain specific tropes and audience expectations. Knowing your subgenre at the onset can ease in focusing which categories you should spend special attention on (Technology for steampunk, for instance). For bottom-uppers, it might be wise to answer this question after going through all the rest and have discovered which conceit categories you have spent the most time with.
+
+2. What analogue culture(s) will you be using?
+
+What Earth analogues will you use in your world? What distinct characteristics are they known for? Make sure to include the specific time period, since England AD 1000 is much different than England in the 1600s. Also, no culture exists in a vacuum, and they often react to their neighbors by either adopting certain aspects or differentiating themselves from them. Including multiple cultures allows for injecting more conflict in your story.
+
+3. What analogue settings will you use?
+
+What real-life region is your setting most like? What climate, biomes, landscapes, and weather patterns are there?
+
+4. What fields do you need expert-level knowledge in?
+
+The more an aspect affects the main storyline the more specific the knowledge the author will need to demonstrate to seem credible in that field. For most other aspects, the author just needs to maintain a general face validity, but for important components, you will need to appear to be an expert. So if your story hinges on a nomadic horse-based society, it’s time to gin up your knowledge on those beasts. Ditto if your story revolves around archery or sappers undermining a castle’s defenses.
+
+5. Will your fantasy conceits manifest as exsecting, unchanged, divergent, or additive conceits?
+
+It’s good to remember that you can have multiple manifestations as well as multiple fantasy conceits in numerous categories.
+
+6. Are there seasons on your world?
+
+Seasons exist on Earth because of the tilt of our axis, rate of rotation, and revolution around the sun. If your world has seasons just like our own, this means it needs to mimic Earth’s axis, rotation, revolution, size, and distance from the sun. When created worlds mimic Earth, this is known as terra de facto . Terra de facto can also manifest when created worlds have the same types of plants, animals, and existence of humans as Earth.
+
+7. How many moons does your world have?
+
+The number of moons is a big deal since our moon is what keeps our axis tilt stable as well as accounting for our tides. Multiple moons or no moons would have a huge effect on the planet. And if multiple moons exist, it is worth considering how often they wax and wane, how much reflected light will be available at night, and how this would affect the inhabitants’ measurement of time.
+
+8. What ancillary information will you include?
+
+Audiences love additional worldbuilding details and lore that extend beyond the text itself. Maps and myths in particular.
+
+
+
+
+
+Geography
+
+
+
+The lay of the land may seem an odd place to start in a genre dedicated to mythical beasts and magic, but changes made to the construction of the world as a whole impact the other conceits much more than any other. That said, massive changes to the planet are more often the domain of science fiction, and many fantasy worldbuilders invoke terra de facto by using an Earth analogue and simply changing the landscape.
+
+1. How many continents does your world have?
+
+Most fantasy stories occur on a single continent, but it is worth knowing if others exist, how far apart they are, and if there is contact or trade between them.
+
+2. Is your continent oriented north-to-south or east-to-west?
+
+Orientation plays a huge part in climates, biomes, and how culture and technology spread. East-west orientation means that regions that share the same latitude all also share the same temperature since they are the same distance from the equator. It is easier for crops to spread along east-west continents due to the same basic climates and biomes. The same distance traveled on a north-south-oriented continent would have drastically different temperatures since you would be traveling perpendicular to the equator.
+
+3. What climate and biomes does your world have?
+
+Climate refers to the temperature and rainfall of a region, whereas biome refers to the plant and animal life in a general region. Climate affects biomes significantly, which in turn affects what type of life inhabits it.
+
+4. How readily available is water?
+
+All life on our planet requires water to survive, so how available it is matters significantly. The surface of Earth is 70% water, but only 1% of that is fresh water. Rivers always flow downhill toward oceans and connect up instead of branching out (except for the case of deltas near oceans). Rivers never naturally flow from one ocean to another.
+
+5. What natural borders exist between your regions?
+
+The borders between most nations occur along natural demarcations, be they rivers, mountains, or larger bodies of water. Landmarks such as these play huge roles in the development of nations as well as separating them.
+
+6. What is the local terrain like?
+
+Flat, rocky, hilly, mountainous, swamp, forest, desert, etc.? Remember that some terrains cannot exist next to each other naturally, such as deserts and swamps.
+
+7. What are the local resources?
+
+People settle in areas because of the resources, so if there are people there, it’s most likely for a reason. Water is most definitely a resource.
+
+8. What are the most common sources of food?
+
+People have got to eat, and we’ll eat just about anything. Populations cannot grow larger than the available food sources without a consistent system of trade. Generally, 1.5 acres of crops is required to sustain one person.
+
+9. What are the man-made divisions between the regions?
+
+How do you know when you step from one nation to the next? Is it a hard or porous border?
+
+10. Who controls access to crossing between regions?
+
+Are there mechanisms for keeping people out… or in?
+
+11. Is the populace relatively homogeneous or heterogeneous?
+
+Are there multiple species, ethnicities, or groups living in this region? Do they intermix? Are they indigenous or did they migrate there?
+
+12. What is the major form of transportation?
+
+How long does it take to travel ten kilometers? One hundred kilometers?
+
+
+
+
+
+Biology
+
+
+
+Biology is the study of living things, which are closely tied to their environments because of evolution. Due to the fantastical nature of the genre, authors do not need to completely abide by the laws of biology, although knowing them helps in creating a sense of credibility for the world.
+
+1. How much terra de facto is in effect?
+
+Does your world possess the same plant, animals, and humanoids that Earth does? If they do, do they have the same names as on Earth? Renaming a species for no other reason than to sound exotic is called a smeerp and is generally looked down upon.
+
+2. How close will you cleave to evolution?
+
+Do the plants and animals in your world have to abide by the laws of natural selection as we know them or are they magical in origin? Certain fantasy mainstay creatures, such as centaurs and pegasus, generally do not abide by the laws of biology, and people seldom complain.
+
+3. How does the local climate affect the regional plants and animals?
+
+How do your plants and animals reflect their environment?
+
+
+
+4. What is the basic food pyramid or web in the area?
+
+How is energy originally converted to calories? What are the herbivores and carnivores? What is the apex predator ? What are the carrion species?
+
+5. Have you added any new plants—i.e., flora?
+
+How to they reflect the biome? Do they have any special properties? How do they reproduce and distribute their seeds? Are they poisonous? Is there a safe way to consume them? Do they bestow any special abilities when consumed?
+
+6. Have you added new fauna?
+
+How do they reflect their biome? How many sexes do they have? Do they have secondary sexual characteristics , such as different sizes, colorings, horns, or the like?
+
+7. Do they have any special abilities?
+
+What are their limits? Any weaknesses?
+
+8. What do they eat and what eats them?
+
+This harkens back to where they reside in the food web but also has ramifications for their special abilities.
+
+9. What is their life cycle?
+
+How long do they live in the wild? In captivity? Do they perform a metamorphosis from one stage to another?
+
+10. Are there any additional humanoid races?
+
+How many and how prevalent are they? What do they look like?
+
+11. What did they evolve from?
+
+Humans maintain many ape-like traits due to our ancestors, and it stands to reason any new humanoids would as well.
+
+12. Can they interbreed with other humanoids?
+
+If it’s even vaguely human, you know someone’s going to try.
+
+13. Are they local or did they migrate to the area?
+
+If they migrated, how long ago?
+
+14. How do they reflect their original biome?
+
+They may not originally be from this region, remember.
+
+15. Do they have any special abilities?
+
+What are they? Any limits? Weaknesses?
+
+16. How many limbs and digits do they have?
+
+We use a base ten mathematics system because we have ten digits, after all. And a creature with pincers instead of hands would use very different tools.
+
+
+
+
+
+Physics (Magic!)
+
+
+
+This section may be labeled “Physics,” but it’s really about magic, which is the breaking of the laws of physics. Most people believe in hard and soft magic, which was popularized as a concept by the author Brandon Sanderson and his three laws of magic. Hard magic systems are those that the audience clearly understands the rules, limits, and weaknesses of. Sanderson maintains that hard magic systems are more satisfying dramatically to audiences when used to solve problems than soft systems because of this understanding. Hard systems are also often consistent and predictable. Soft magic systems are less spelled out to the audience and are more mysterious and awe-inspiring because of it. They are less satisfying to solve dramatic questions because they can feel like a dues ex machina due to the lack of audience understanding.
+
+1. How well-known is magic on your world?
+
+Is it common, rare, or unheard of? Is it actively hidden from the general populous?
+
+2. Is magic ascendent or descendent?
+
+Is it waxing or waning in influence and power?
+
+3. Can magic be harnessed?
+
+Is it a wild thing that cannot be controlled or can people bend it to their will?
+
+4. Will you employ a hard or soft magic system?
+
+Both have their strengths and weaknesses, and you can use more than one system in your world.
+
+5. What are the magical abilities of your system?
+
+What about limits, weaknesses, and costs for using your powers? Are there limiting factors, like expending your personal energy (mana), needing to memorize spells, using focus items (wands), risking insanity or immorality, etc.?
+
+6. Is your magic system exclusive?
+
+Who can use it? How are they chosen? Is it innate?
+
+7. How does one advance within the system?
+
+Can you gain additional power or is it static? How do you gain or lose power?
+
+8. What does using the system physically look like?
+
+Is it subtle or are there obvious effects? Are they cool-looking? Could they be cooler?
+
+9. Can characters add to the system or is it static?
+
+Can characters add to the general knowledge base or have all the spells already been discovered?
+
+10. Can it be done incorrectly?
+
+If so, what are the side effects?
+
+11. What is the source of magic?
+
+Where did it come from originally? Did a deity make it or is it happenstance? Is it considered aberrant in the world or a natural component?
+
+12. How predictable is the magic system?
+
+Does the same result occur each time, or is there a degree of deviation?
+
+13. Is the magic sentient, or is it more of a force of nature?
+
+If sentient, can it be bargained with?
+
+14. Do magic items exist?
+
+If so, what are their abilities, limits, weaknesses, and costs?
+
+15. How are they made?
+
+Can anyone make them? Who can use them? Are they common?
+
+16. Is time travel possible?
+
+This can open a whole narrative can of worms, so be careful.
+
+17. What are the rules of time travel?
+
+Can the characters change history, or will it make multiple timelines? Is there a governing body to keep this from happening?
+
+18. Do psionics exist?
+
+Are they separate from the magic system or considered a part of it? What are the abilities, limits, weaknesses, and costs of psionics?
+
+19. How common are psionics?
+
+Are they innate or can they be learned? How well-known are they? How will society change if they know people can read minds?
+
+
+
+
+
+Metaphysics
+
+
+
+We will not be using Metaphysics in the philosophical sense, but rather the colloquial meaning pertaining to gods, demons, spirits, and the general cosmology of the world. And although both deal in deities, for our purposes, Metaphysics do not contain religions since religions are a social human construction and therefore belong in the Culture category. Metaphysics, on the other hand, deal with supernatural beings that make no attempt to adhere to the natural laws of biology or physics.
+
+1. Where does your world reside in the cosmos?
+
+Are there other planes of existence like Heaven or Hell? Who created the world and other planes? Where do the deities dwell? How does one move from realm to realm?
+
+2. Does the soul exist?
+
+Is there in immutable component to existence that continues on after the corporeal body dies? Is this for just humanoids or other animals/plants as well? Is there an afterlife? If so, where is it?
+
+3. Are there deities?
+
+Are these entities that eclipse all others in terms of scope and power and therefor can only be compared to gods from mythology? If there are deities, how many? Are they grouped together into pantheons? Do they work with each other or in opposition?
+
+4. Are there themes to the deities?
+
+Are they tied to a force of nature (lightning, famine, etc.), a region (mountain, plains, etc.), emotion (love, hate, etc.), activity (war, learning, etc.), or animal (fox, goat, etc.)?
+
+Possible Roles For Gods
+
+
+
+5. Do deities have any special abilities?
+
+Are the abilities tied to their themes? Do they have limits or weaknesses?
+
+6. How active are deities in the world?
+
+Are they aloof to the happenings on the planet, indifferent, take direct action, or perhaps send their minions to intervene?
+
+
+
+7. Can deities interbreed with humans?
+
+If so, what are their offspring considered? Can they interbreed with other animals as well?
+
+8. Are there lesser divine entities, such as demigods, angels, demons, or avatars?
+
+If so, what are their abilities, limits, and weaknesses? How do they appear physically?
+
+9. Do these entities serve the deities?
+
+If so, how closely are they aligned? Do they have their own agendas?
+
+10. Are there mortal servants of the deities?
+
+If so, what are their abilities, limits, and weaknesses? Are they bound by any sort of code? Do they have to forsake anything?
+
+11. How directly do their mortal servants speak for the deities?
+
+Are they direct mouthpieces or must they interpret the will of the gods?
+
+12. How are their mortal agents regarded by the deities?
+
+Can the mortals directly address the deities? Can they influence them?
+
+13. How are their mortal agents regarded by other mortals?
+
+Are they well-liked, hated, ignored, etc.?
+
+14. Are there weaker supernatural entities, such as spirits, ghosts, and the undead?
+
+If so, what are their abilities, limits, and weaknesses? How do they appear? Do they have agendas?
+
+15. Can these entities be destroyed?
+
+If so, how?
+
+
+
+
+
+Technology
+
+
+
+Although more a mainstay of science fiction than fantasy, technological fantasy conceits play a large role in the genre. This is due to toehold details , which are details used to signal what analogue culture and time period the author is using, which usually manifest in the style of clothing, weapons, and transportation the characters use. This orients the audience by making the alien world more familiar and therefore allows them to focus more on the fantasy conceits.
+
+1. What is the level of analogue technology you will be using?
+
+This can range from Stone Age tools all the way to futuristic weapons like lightsabers. But once you pick a time period, it’s best to stick to it, although there are frequently different technology levels on the planet at any one given time.
+
+2. What toehold details will you use?
+
+What specific details will instantly signal to the audience what culture and time period you are using? For instance, calling a sword a katana or a cutlass invokes very different cultures and time periods.
+
+3. What is the most powerful technology in your world?
+
+Most powerful doesn’t necessarily mean a weapon.
+
+4. What is the most useful technology in your world?
+
+What has changed the standard of living for most people? Many sociological changes are often wrought after massive technological advances, with examples including the invention of steel, combustion, factories, and computers.
+
+5. What is the most common technology in your world?
+
+Distribution of technology factors greatly in the standard of living.
+
+6. What percentage of the populace is literate?
+
+The ability to read is a technological advancement, along with mathematics. Is anyone allowed to learn to read, or is it restricted to certain classes?
+
+7. What plants and animals have been domesticated?
+
+Domestication is another crucial technological advance for societies. Cultures without domestication must depend on hunting and gathering, which greatly impedes the time necessary to specialize in careers or invent new technology.
+
+8. Who can use the different levels of technology?
+
+Is anyone who can afford it allowed to use it? Are there restrictions? Are they based on class or gender? What about species or ethnicity?
+
+9. What are the most common forms of transportation?
+
+Do they differ based upon the distance traveled? What about the class of individual traveling?
+
+10. How do people in your world communicate long distances?
+
+Is there a system for transmitting messages over long distances? How does it work? Can they be intercepted?
+
+11. Who creates new technology in your world?
+
+Are they lone inventors or teams? Are they sponsored by the government? Who owns a new invention and how do they protect that ownership?
+
+12. Are there any institutions opposed to advances in technology?
+
+Not everyone appreciates new inventions, and oftentimes groups oppose innovation. This could be for any number of reasons, be they religious, financial, or political.
+
+
+
+
+
+Culture
+
+
+
+Culture is ironically something we all have and take part in on a daily basis, but is exceedingly difficult to define. It encompasses all the customs, institutions, habits, collective knowledge, worldviews, and arts of societies, and is where most of the fantasy conceits manifest. This is because culture is the most malleable part of humanity and is always in a state of flux. We are all genetically indistinguishable from each other as a species, but we have thousands of different cultures at any one given time. So, needless to say, the addition of dragons or magic to a world will affect different groups of people in different ways. The study of culture encompasses several fields of the social sciences and humanities and is definitely a worthy investment of your time if you want to really make your worldbuilding details feel authentic.
+
+1. What are the genders in your societies and how are they differentiated?
+
+Sex is a biological distinction, whereas gender is a social construct. The genders are treated differently in all human societies, and it’s worth taking note of that for your world. There are also different societal expectations and understandings of what it takes to be a “good” member of a gender.
+
+2. What ethnicities are there in your societies?
+
+Ethnicities are a group that identifies with each other based on presumed similarities such as a shared language, ancestry, history, society, or social treatment within an area, etc. Ethnicities are not dependent upon, but are often associated with, certain taxonomic traits or physiological similarities within those groups. How do ethnicities identify themselves in your world? How do others identify them?
+
+3. What social classes are there in your societies?
+
+Classes deal with the social stratification in societies and usually break down along upper, middle, and lower classes. How are these distinctions made? How are they visually represented? Are there any verbal tics associated with each class? Can people move from one class to another?
+
+4. Are there any cultural taboos?
+
+A taboo is a practice that is considered prohibited, profane, or forbidden in society. Are these taboos for everyone or can certain people break them? What is the punishment if you do?
+
+5. Are there any customs or rituals?
+
+These are informal or formal laws of behavior that most people take part in without thinking about, such as shaking hands, taking off their shoes when entering someone’s house, or saying “bless you” after someone sneezes. What are specific customs of your culture? How do they differ from nearby cultures? Why were they created? Who enforces them?
+
+6. How many religions are there in your society?
+
+Is there just one or many? Is one sponsored by the state? How do the religions get along?
+
+7. What types of religions are they?
+
+Most people think of just monotheistic (single god) or polytheistic (multiple gods) religions, but there are also animism, ancestor worship, and shamanism. In all these cases, there is usually someone who acts as an intermediary between the common person and the supernatural realm.
+
+8. How well do the religions know the will of their gods?
+
+Do the deities communicate with them directly or must they interpret the deity’s will? Does the deity ever speak to mundane individuals or only address adherents of the religion?
+
+9. What are the forms of government?
+
+There are a myriad different forms of governments on Earth, but the most common in the fantasy genre are autocracy, where power is held in the hands of one individual or polity (think royalty); democracy, where people elect a governing body of some fashion; and oligarchy, where power rests in the hands of a small group of people (a religious order or warlords). Many other forms exist, including feudalism, theocracy, communism, and fascism, just to name a few.
+
+10. What are the powerful institutions?
+
+Institutions are stable organizations with a social purpose working for a collective goal, with examples including guilds, clans, religions, or cults. Are they public or hidden? How does one join? Can you leave? What is their collective goal, and what is the individual expected to sacrifice to do their part?
+
+11. What are the major holidays?
+
+What are they celebrating and how do they celebrate? Are they religious in origin? Why are they significant?
+
+12. What are the nearby nations or ethnicities?
+
+How similar are they? How do they differentiate themselves from each other? How do they influence each other?
+
+13. How is the government structured?
+
+Who makes the laws? How do they retain power? How is it passed on? What are the social strata within the governing body?
+
+14. Who enforces the laws?
+
+Is there a local police force and/or a system of judges? Who dispenses justice? Who arbitrates disputes between countries?
+
+15. Is there a military?
+
+If so, is it a standing military? Are they professional soldiers or conscripts? What is the level of training? What are the standard-issue weapons, armor, rations, etc.? What are their ranks? How does one advance?
+
+16. How are people educated?
+
+Is it formal or informal? At what age do they start? Is there a different curriculum for the genders? What about social classes? What is the minimum level of education you are expected to have to be a productive member of society? Is any knowledge forbidden?
+
+17. How does commerce take place?
+
+Do people barter? Is there a currency? Who issues it? What are the common units of measure goods are bought and sold in (a bushel, a peck, etc.)?
+
+18. What about the local food and alcohol?
+
+What are the general staple meals in the region? Are there distinctions between the diets of socioeconomic classes? What spices do they use? Are there any foods that are taboo? What is the regional means to get inebriated?
+
+19. How about languages?
+
+How many local languages are there in the region? Remember that there is no one universal language for humans, and there most likely wouldn’t be for other species. What is the official language of the region? How many people are multilingual? Is there a pidgin language used for trade? Are there regional dialects?
+
+
+
+
+
+Glossary
+
+
+
+For a more in-depth exploration of 200+ worldbuilding definitions, please visit the glossary at my website .
+
+Additive : When something has been added to a created world, usually in the form of magic or fantasy species.
+
+Analogue Culture : Real-life cultures that the creator emulates in their work and then applies their fantasy conceits to.
+
+Apex Predator : The predator at the top of a food web that no other creature naturally feeds upon. Two apex predators cannot exist in the same niche.
+
+Bottom-Up : In design, where the granular, base elements of the system are created first, then grouping them together into larger constructs over and over until a pattern forms. Also known as “pansting” in writing and worldbuilding because the creator is building by the seat of their pants.
+
+Deus Ex Machina : A plot device in which an unexpected power, event, or deity intervenes to save a hopeless situation.
+
+Divergent : When the creator alters something in the development of the world but it remains very similar to the real world in every detail but this fantasy conceit. For instance, a world that resembles our own but made up of anthropomorphic animals instead of humans.
+
+Ethnicity : A group that identifies with each other based on presumed similarities such as a shared language, ancestry, history, society, or social treatment within an area. Ethnicities are not dependent upon, but are often associated with, certain taxonomic traits or physiological similarities within those groups.
+
+Exsecting : When the creator removes something that exists in the real world from the created world.
+
+Fantasy Conceit : What the creator intends to explore in the world, it is where the constructed world deviates from the real world, usually in the form of geography, biology, physics, metaphysics, technology, or culture.
+
+Gender : A social construct of how cultures differentiate the sexes.
+
+Inside-Out : How audiences process worldbuilding details, in that they pertain to the immediate understanding of the scene, which are then pieced together into an understanding of the world.
+
+Secondary Sexual Characteristics : The distinguishing traits that distinguish the sexes, such as human males’ facial hair or females’ breasts.
+
+Smeerp : Unnecessarily renaming something to make it seem exotic. Derived from James Blish’s sarcastic use of the term when describing rabbits.
+
+Terra De Facto : The implicit understanding that anything that is not accounted for by a fantasy conceit must therefore abide by the rules of the real world.
+
+Toehold Details : Descriptors that specifically trigger the assumption of an analogue culture and time period, and therefore help the audience to mentally populate the scene.
+
+Top-Down : In design, when the underlying idea or system is formed on a grand scale, then with all subsequent subsystems being added and refined until everything is mapped out. Also referred to as “planner” or “engineer” when it comes to writing or worldbuilding.
+
+Unchanged : When the creator does not use a particular fantasy conceit and leaves their created world the same as the real world in regards to this fantasy conceit. See Terra De Facto.
+
+
+
+
+
+Worldbuilding Worksheets
+
+
+
+
+
+Ready to dig further into your world? Go grab my FREE worldbuilding worksheets at my website. There are generally the top-down design style and bottom-up, but both worksheets are available for free so you can figure out which one works for you.
+
+
+
+
+
+Additional Resources
+
+
+
+There are thousands of worldbuilding resources out there, but it often seems like they are scattered haphazardly throughout the internet. So here are a few that I’ve personally found useful during my worldbuilding journey. Please also visit my website mdpresley.com for additional resources and updates.
+
+
+
+Worldbuilding For Fantasy Fans And Authors : My collection and synthesis of worldbuilding theories and best practices drawn from fantasy authors, worldbuilding experts, and game designers. Over 300 pages dedicated to tracing the origin of fantasy worldbuilding, understanding immersion, dissecting common tropes, delving deep into the fantasy conceits outlined above, and a whole lot more. You should check it out.
+
+/r/ worldbuilding : This is a fantastic community of over a half-million worldbuilders exchanging ideas, non-judgmental critiques, and design prompts. A great place to either kick off your worldbuilding journey or sharing best practices with other experts.
+
+Fantasy Maps and Worldbuilding Facebook Group: Another great spot to find others to trade notes about maps and worldbuilding. An active community with no judgement that’s accepting of anyone no matter their worldbuilding experience.
+
+World Anvil : An online wiki program for storing and organizing your worlds. It is a paid site, although there is a free option. They also have a great podcast .
+
+Hello Future Me : An exceptional YouTube channel dedicated to worldbuilding and writing. Each episode provides a deep dive into a worldbuilding or writing aspect yet is still always entertaining. His book On Writing and Worldbuilding is another must-have.
+
+A Magical Society: Guide to Mapping : A free thirty-seven-page introduction into designing a world starting with plate tectonics and global weather patterns all the way to the migration of species. It sounds intimidating, but it’s very easy to understand and use.
+
+Brandon Sanderson’s Online Writing Courses : No one has contributed more to understanding fantasy magic systems than Sanderson, who has made all his 2020 creative writing classes at BYU available online for free. He’s also a part of the popular Writing Excuses p odcast , the fourteenth season of which is dedicated entirely to worldbuilding. Both are invaluable resources.
+
+Kobold Guid e to Worldbuilding : A collection of essays on a wide variety of worldbuilding for role-playing games. A great resource for writers as well.
+
+Donjon Medieval Demographic Generator : It’s actually a world creator geared for RPGs, but I find this to be the most useful feature since it tells you exactly how many and what kinds of trades a community can support just from plugging in a population. There are loads of other features that are worth checking out, too.
+
+Chaotic Shiny : If you’re ever at a loss for worldbuilding ideas, this collection of generators is for you. Everything from magic systems to constellations.
+
+Mythcreants : A long-running website dedicated to writing speculative fiction with a particular focus on worldbuilding. They also have a great podcast .
+
+Mithril and Mages : Another awesome random generator, but one geared more for names. It is also not stuck in the vaguely medieval Europe time period and can draw from modern surnames to natural terrains. Worth checking out.
+
+Jemisin Wired Presentation : Nebula and Hugo winner N. K. Jemisin has been giving worldbuilding workshops for years now and recently recorded this presentation for Wired . Nearly two hours dedicated to worldbuilding by someone at the top of the field.
+
+Medieval Fantasy City Generator : A really cool generator with quite a few features for when you need a city right this second.
+
+Everyculture.com : As the site name suggests, a compilation of cultures and countries from around the world. A great starting point for cultural overviews as well as inspiration on finding a unique analogue culture.
+
+
+
+
+

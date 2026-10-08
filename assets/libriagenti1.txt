@@ -1,0 +1,990 @@
+Write Engaging, Natural Dialogue
+
+ROB BIGNELL
+
+A Guidebook in the
+
+Storytelling 101 Quick Read Series
+
+
+
+
+
+WRITE ENGAGING, NATURAL DIALOGUE
+
+A GUIDEBOOK IN THE STORYTELLING 101 QUICK READ SERIES
+
+Copyright Rob Bignell, 2023
+
+All rights reserved. Except for brief passages quoted in newspaper, magazine, radio, television or online reviews, no portion of this book may be reproduced, distributed, or transmitted in any form by any means, electronic or mechanical, including photocopying, recording, or information storage or retrieval system, without the prior written permission of the author.
+
+A Production of Inventing Reality Editing Service
+
+Atiswinic Press
+
+Ojai, Calif. 93023
+
+Manufactured in the United States of America
+
+First printing September 2023
+
+
+
+
+
+Contents
+
+Introduction
+
+Move the Story Forward
+
+Sound Natural
+
+Show Don’t Tell
+
+Avoid Small Talk
+
+Shun Info Dumps
+
+Avoid Speeches and Soliloquies
+
+Give Characters a Unique Way of Speaking
+
+Get the Attribution Right
+
+Delete Bookisms and the Laugh Track
+
+Don’t Overdescribe in Text Surrounding Dialogue
+
+Punctuating Dialogue
+
+Editing Your Dialogue
+
+
+
+
+
+Introduction
+
+
+
+One of the most important tools in your writing kit is dialogue. It can help develop your characters, move the plot forward, increase tension, and establish a scene’s mood.
+
+Unfortunately, sometimes novice writers write dull dialogue. Like a flat tire that slows your vehicle to a near stop, so dull dialogue can quickly bring your story to a near halt.
+
+Write Engaging, Natural Dialogue is all about helping beginning writers better understand how to pen conversations between characters. If you’ve already written a story and know the dialogue is weak, the tips in this book can help you diagnose and fix the problem.
+
+Along the way, we’ll discuss several basic principles of dialogue, such as moving the story forward, sounding natural, showing rather than telling, avoiding small talk, and shunning exposition. We’ll also look at how to give characters a unique way of speaking and getting the attribution right. Following that, we’ll review how to properly punctuate your dialogue and then how to edit it.
+
+Dialogue marks one of the best ways to reveal a characters’ intentions and their relationships with one another. In a few words, you can achieve what otherwise would take several paragraphs to do.
+
+Are you ready to write great dialogue?
+
+Then let’s get started!
+
+
+
+
+
+Move the Story Forward
+
+
+
+When writing fiction, every sentence should move the story forward. To do that, characters must work toward achieving their goals. Your story then is about how well they accomplish their goals. For much of the story, your characters will fail to achieve their goals, either because of their own personal flaws or because they’ve been thwarted by a character who has other objectives.
+
+Often the reason dialogue is flat and dull is because it’s not fulfilling this storytelling requirement. Such dialogue is filler and often pointless.
+
+Consider this passage:
+
+Barging inside his room, there was Ross, laying on the bed in just an undershirt and boxers, eyes wide open and breathing.
+
+“Hi Mia,” he said.
+
+“Hi Ross.”
+
+“Have you been outside yet?”
+
+“Just briefly.”
+
+“What’s the weather like?”
+
+Though the opening paragraph sets up a suspenseful situation, the dialogue that follows undercuts it. The dialogue instead should continue showing Mia trying to achieve the goal that caused her to barge into the room. Ross’s dialogue should show why he’s still on his bed.
+
+Now look at how it has been revised to focus on the characters’ motivations:
+
+Barging inside his room, there was Ross, laying on the bed in just an undershirt and boxers, eyes wide open and breathing.
+
+“What’re you doing?” I said, pulling his suit from the closet hanger and bringing it over to the bed.
+
+“I can’t go, Mia.”
+
+“Are you ill? Maybe we can resched–”
+
+“No, I mean I can’t go.”
+
+Tightening dialogue so it shows a character’s motivations often involves inferring their thoughts and feelings while withholding information from the reader. Consider this poorly written dialogue, which doesn’t do either:
+
+For the past seven hours, I’d been on my feet, talking nonstop about our app with every tech geek and potential investor who stopped at our booth. Terrell was an hour late for his shift. Every text I sent him got the same response: On my way.
+
+Then my phone rang. I glanced at the screen. Terrell. I excused myself, walked to the back of the booth.
+
+“Terrell, I’m really mad at you. Where are you?”
+
+“Mia, I spent the night with some girl from a tech company that has a competing app. While I was sleeping, she took all of my clothes and left the room. Could you get me some clothes?”
+
+“What? I have a responsibility, Terrell. I can’t leave the booth unattended!”
+
+Bring my duffel to Room 1202.”
+
+“Look Terrell, I care about you and want to help. But I can’t just close the booth.” I glanced at the crowd growing around the booth.
+
+“Please Mia – I need your help.”
+
+Now look at how it has been tightened:
+
+For the past seven hours, I’d been on my feet, talking nonstop about our app with every tech geek and potential investor who stopped at our booth. Terrell was an hour late for his shift. Every text I sent him got the same response: On my way.
+
+Then my phone rang. I glanced at the screen. Terrell. I excused myself, walked to the back of the booth.
+
+“Terrell, where are you?”
+
+“Mia, you’ve got to come and get me.”
+
+“I can’t leave the booth!”
+
+“Bring my duffel. I’m in Room 1202.”
+
+“What the hell is going on, Terrell?” I glanced at the crowd growing around the booth.
+
+“Please Mia – I need your help.”
+
+The dialogue in the second passage infers Mia’s thoughts and feelings. The reader can tell she’s angry at Terrell, that she is responsible, and that she also cares about her colleague. The first passage, rather than infer, states it. Stating instead of inferring, however, is exposition, which slows the story’s forward movement.
+
+In addition, dialogue ought to create suspense. It can do that by withholding information from the reader. The first passage fails at this, because Terrell tells why he’s in trouble. In the second passage, Mia – and hence the reader – doesn’t know why Terrell needs help, and so that keeps us wondering (and reading!) as well.
+
+
+
+
+
+Sound Natural
+
+
+
+Since dialogue in fiction is contrived, a challenge facing authors is to find ways to make it sound realistic or natural.
+
+Good dialogue isn’t a syllable by syllable copy of two people speaking to one another, however. Your characters’ dialogue should not mirror actual conversations too closely.
+
+Compare the following dialogue examples. This one attempts to mimic real life conversation (even though it’s from a science fiction story):
+
+“You know, Upir, I’ve changed. I just can’t help you.”
+
+The alien raised his hands. “But what of Ala and I? It took all three of us to lure the human spacecraft to that asteroid.”
+
+“But two of the humans died when the spacecraft crashed! I was the test subject for us; I volunteered so you would not die if it didn’t work!”
+
+“Well then, why did you leave us there?”
+
+“It was the jump, it made me mad, you know. I did not know what I was doing!”
+
+“You do now, right?”
+
+“Yeah, I do. But I am powerless. You see, once human, you no longer can jump.”
+
+“Yeah, I know.”
+
+“You do? How?”
+
+“The humans sent a rescue craft. Ala was near death, so he jumped.”
+
+“Oh, I see.”
+
+The following example more succinctly indicates the characters have goals to achieve. They use their conversation to further their personal agendas, which helps move the story forward:
+
+“I’ve changed, Upir. I can’t help you.”
+
+“You know what will happen if you don’t do as I say.”
+
+“I’m not cold anymore, Upir.”
+
+The alien raised his hand like a cat ready to strike. “Yes, Raphaelie, I can see that. You’ve got what you wanted. But what of Ala and I? It took all three of us to lure the human spacecraft to that asteroid. You will make amends for what you did.”
+
+“But two of the humans died when the spacecraft crashed! I was the test subject for us; I volunteered so you would not die if it didn’t work!”
+
+“Then why did you leave us there?”
+
+“It was the jump, it made me mad. I did not know what I was doing!”
+
+“But you do now.”
+
+“I am powerless. Once human, you no longer can jump.”
+
+“I know.”
+
+“How?”
+
+“The humans sent a rescue craft. Ala was near death. He jumped.”
+
+“Why didn’t you?”
+
+“Because I wanted you.”
+
+Which one was more interesting to read?
+
+Good dialogue actually approximates people would speak, which typically is less formal than how you would write.
+
+To make your dialogue sound natural, try these techniques:
+
+• Pay attention to speech rhythms – Read the dialogue out loud to see if it sounds natural. If it reads like you’ve written a homework assignment or like the characters are too dumb to say more than a couple of words at a time, then it probably needs to be revised.
+
+• Use improper grammar – People don’t speak like the way you write a paper for a class. Don’t deliberately use improper grammar, though; its use always must sound authentic.
+
+• Create generational tags – Each new generation creates its own slang that separates it from those who came before. Your characters, whether living in the 16th or the 26th century, will do the same.
+
+• Devise local tags/slang – We often can tell the region a person comes from based on how they speak. A Southerner might say “Y’all” and a Minnesotan might say “You betcha.” Southern Californians often put “the” before a highway name, such as “You can take the 5 to Disneyland.” You can drop in these regional peculiarities as well; just be careful of not using stereotypes.
+
+• Develop economic class tags – People have ways of identifying themselves as different from one another, merely based on their lifestyles. Perhaps the wealthy will talk about international travel to expensive destinations while someone of a lower economic class talks about visiting Wisconsin Dells or an amusement park that has seen better days.
+
+• Draw upon a lexicon of shop talk – In-group jargon of specialized professions and interests often is spoken between people. An emergency room doctor might tell another doctor that a patient has “acute lead poisoning,” which means a gunshot wound. Surfers would call a massive, powerful wave a “bomb.” While you don’t want to fill dialogue with jargon, sprinkling it in creates a sense of realism.
+
+• Minimize mannerisms – Stutters and spelling words to match the pronunciation of dialects only forces the reader to pay attention to individual words rather than to the story. Save mannerisms for special occasions, such as tripping over one’s words when a character is nervous.
+
+• Get rid of the filler – Because dialogue needs to be tight and concise, no words can be wasted. Get rid of the “ums,” “uhs” and “wells,” even though people use these filler words all of the time when speaking. Instead, limit their use to when they serve a dramatic purpose in the story, such as showing a character is nervous or at a loss of words.
+
+
+
+
+
+Show Don’t Tell
+
+
+
+All too often, new writers fall into the error of telling during dialogue. This occurs, for example, when the narrator states how a character feels rather than using concrete details from which the feeling can be inferred. So instead of saying, Suzanne was feeling naughty infer it by writing Suzanne ran a finger along his arm.
+
+When writing dialogue, writers also can fall in the trap of telling instead of showing. Instead of writing “I’m feeling tired, Alvaro,” Suzanna said instead write Suzanne yawned. “Let’s go to bed, Alvaro.”
+
+Among the problems of a character telling what he feels is that it doesn’t sound realistic. Many characters, as with people in real life, usually don’t know exactly what they’re feeling but have only a vague sense of it.
+
+But people often do express what they feel. Because of that, body language is the perfect way to convey their emotional state.
+
+Sometimes new writers will claim that their reader won’t get what they’re saying and so need to be told what to think about the character. That viewpoint not only underestimates the reader but actually takes the fun out of reading. It’s akin to handing a puzzle lover a new 1000-piece set and then putting it all together for them.
+
+
+
+
+
+Avoid Small Talk
+
+
+
+In the real world, people frequently use small talk as a courtesy to others or to fill moments of awkward silence. We’ve all done it before – “How’s the weather there?” … “How are the kids?” … “How’s work going?” Most of the time, we really don’t expect more than a trivial answer; we’re just trying to be kind.
+
+There’s little room in a novel or a short story for small talk, though. Small talk doesn’t move the story forward, as it rarely ever shows a character attempting to achieve a goal. Because of that, small talk makes for mind-numbingly dull writing.
+
+Consider the following dialogue:
+
+“Hi Mary, how are you doing?”
+
+“Just fine, thank you. And you?”
+
+“Same old same old. How are the kids?”
+
+“Doing great. Kaitlyn is playing T-ball this summer.”
+
+“Oh fun! Bet that keeps you busy.”
+
+“Yep. And how’s Timmy?”
+
+“Still playing soccer.”
+
+“Well, I best be going. Nice seeing you again.”
+
+“Nice seeing you too. Bye!”
+
+Ugh. Sure, the dialogue sounds realistic, but your story isn’t about copying life as we live it – it’s about helping the reader to either understand or escape life in an entertaining way.
+
+Small talk can appear in a story, of course, but it ought to be for a good reason. For example, it could be used to indicate a character’s nervousness or their shallowness.
+
+Keep these exchanges brief, however – and when doing so opt to show these personality traits in a character.
+
+For example, look for the small talk in this passage involving two teenagers on the beach:
+
+His face brightened when he saw me. I’m sure mine did too.
+
+“Hey Laura,” he said. “Your bikini looks great.”
+
+Damn right it did. The new two-piece nicely showed my trim waist, and the halter top left just enough to the imagination.
+
+And then my mind froze up. I shifted my feet in the sand. “How’s your summer going?”
+
+He shrugged. An awkward silence filled the space between us.
+
+“Hey, wanna get a shaved ice?” he said.
+
+Laura uses small talk – “How’s your summer going?” – so the author can indicate her nervousness. More importantly, the author shows her nervousness with And then my mind froze up. I shifted my feet in the sand. The small talk dialogue is brief rather than carried on for several sentences. The reader understands the boy also is nervous when he shrugs and says nothing for a long moment.
+
+Greetings and goodbyes
+
+Like small talk, courtesies such as “Hello” and “Goodbye” almost always are unnecessary in fiction.
+
+With greetings, cut right to the action. In the previous passage, the boy didn’t say “Hey Laura! How are you?” followed with Laura saying, “Oh hi Jason. Great to see you again!” Instead we jump right into the action with the boy complimenting her bikini, indicating he’s attracted to her.
+
+A good way to handle greetings is to show how a character enters the scene. This reveals the characters’ intent. For example, the teen beach passage might have started with Jason ran up to me. This shows he’s excited to see her.
+
+Rather than say “Bye!” at the end of a passage of dialogue, instead end on a more dramatic note that shows the possibility of where the plot might be going or of some potential tension between the characters. That keeps the story moving forward much more effectively than a “Goodbye.”
+
+Answering-the-phone cliché
+
+This small talk cliché consists of detailing all the trivial steps and dialogue that goes into answering a phone call. For example:
+
+John’s cell phone rang. He pulled it out of his pocket, hit the phone icon. “John here.”
+
+“Hi John, it’s Mary.”
+
+“How are you, Mary?”
+
+“Good.” There was a long pause.
+
+“Good but…?”
+
+“My car broke down again.”
+
+John rolled his eyes.
+
+There’s a lot of dull stuff in that passage that merely shows how John answered the phone and the courteous greetings that come with it. While the passage may be true to life, including those details isn’t necessary in a story. They leave the story with a null that serves no purpose. They don’t ramp up the tension, they don’t reveal a character’s motivations, and they don’t set the mood.
+
+Instead, the passage could be trimmed to read:
+
+John’s cell phone rang.
+
+“My car broke down again.”
+
+Mary. John rolled his eyes.
+
+The short version dispenses with the blow-by-blow action and the pleasantries of answering the phone, keeping the story rolling.
+
+
+
+
+
+Shun Info Dumps
+
+
+
+An info dump is a chunk of exposition inadequately integrated into the story. It usually involves sharing your research notes with the reader, just to prove that you’ve done the research. While it’s sometimes necessary to give such information, make sure it sounds natural in your piece and not like a cut-and-paste from an encyclopedia.
+
+An example of an info dump in a story about a woman dating a Brazilian immigrant might be:
+
+“During the past decade,” Ann said, “Brazil has undergone a series of political crises that have caused many citizens to seek a better life elsewhere. And so, thousands of Brazilians have turned their sights toward America. According to the US Department of Homeland Security, the year 2019 saw a record high of almost 20,000 green cards issued to Brazilian nationals. And even in 2021, despite the global pandemic, there were still a staggering 18,000 green cards given out. So what drove this mass migration? Like many immigrants, most Brazilians sought safety and well-paying jobs – two things that have become increasingly scarce in their homeland, even with a college degree in dentistry like my boyfriend. But there’s one more draw to the United States for Brazilian migrants: the possibility of earning a salary in U.S. currency, which is worth five times more than their native real. Whether seeking adventure or a fresh start, Brazilians are eager to pursue the American Dream.”
+
+Most writers intuitively know that an info dump is dull to read and slows the story. It’s exposition that better fits in an encyclopedia or a newspaper article. Yet, a few writers believe their readers absolutely must know it to understand the story. Their solution? Sneak it into the dialogue.
+
+That’s a bad idea. After all, putting quotation marks around an info dump doesn’t make it any less dull to read and doesn’t keep it from slowing the story.
+
+
+
+Often an info dump is given by a Stapledon, a character who serves no purpose other than to relate exposition, usually at great length and without interruption. As in real life, such characters are dull.
+
+In addition, there’s As you Know Syndrome. This occurs when a writer starts dialogue with the words “As you know” and then provides the backstory or the explanation of how something works. Yet if one character already knows it, then why does the other character need to tell them it?
+
+
+
+Another kind of info dumping is maid-and-butler dialogue in which characters tell each other things that they already should know so that the reader can overhear them. Unfortunately, those characters sound simple-minded, as the lines they deliver in real life would be inane.
+
+
+
+Having said this, even the greatest writers are guilty of info dumping. Isaac Asimov is notorious for it in “The Foundation,” often regarded as one of the best novels in the science fiction genre. Frequently, however, these writers were allowed their transgression because the story the info dump delivered was itself so fantastic (As a child, I had the same reaction to many encyclopedia articles that opened my eyes to the wider world.).
+
+But as with so many genre conventions that have appeared time and time again, your info dump probably isn’t all that fantastic. Given this, it’s best to avoid the exposition.
+
+Sometimes, of course, there are times when some of the wording in the info dump needs to be provided to the reader. This is called relevant information. Your task as a writer is to pare down the info dump to just a few words of the most relevant information and allow that to be spoken in dialogue.
+
+For example, take the info dump at the beginning of this section. In the story, the woman dating the Brazilian immigrant might simply say, “He came here for work. There are no jobs for dentists in Brazil.”
+
+
+
+
+
+Avoid Speeches and Soliloquies
+
+
+
+Rarely in real life do people get to give long speeches during conversations. When people talk to one another, there are frequent questions that “interrupt” or exchanges of brief stories to show the other that you share a similar experience. After all, you’re not really in a conversation if one person is doing all of the talking. And if they are, they ought to be darn interesting to listen to or you’re going to start tuning them out.
+
+Likewise, when writing dialogue, you should avoid speeches and long soliloquies or your reader will tune them out.
+
+If you character needs a lengthy speech or soliloquy (a speech in which one person speaks aloud to himself) to explain a character’s motivations or their perceptions of the world, then that probably has not being adequately weaved into the story. A reader should pick up on a character’s motivations through their actions and a line or two of dialogue. Ditto on their views about the world.
+
+A speech or soliloquy that delivers such information usually amounts to an info dump.
+
+It also risks bordering on the dull. At the very least, it can exhaust the reader.
+
+Of course, there are instances when this might be okay. A character could be reciting a memory or telling a fable. So long as those remembrances and fables are stories with their own action, then you’ll be fine.
+
+Likewise, you don’t want the opposite in which dialogue pops back and forth like a ball in a tennis match. This usually occurs when characters simply respond to one another in a short sentence. Instead, vary the length of responses and the sentences. For example, Character A might say one sentence, Character B responds in two sentences, Character A then says two sentences, Character B responds in one sentence, Character A answers in three sentences, and so on.
+
+While dialogue in fiction ought to be tight and punchy, sometimes when penning or editing it, writers go overboard. The result is a choppy flow to the narration as well as text that is robbed of its emotive powers. This problem is known as a mime conversation (Cambridge SF Workshop’s David Smith coined the term.).
+
+
+
+At first glance, such dialogue looks like it’s really ominous and significant. It’s all pretend, though.
+
+
+
+Consider the following example of mime conversation:
+
+“But I heard what–”
+
+
+
+“And that meant she would!”
+
+
+
+“But…but…how could I have been–”
+
+
+
+“Wrong? You weren’t. You just weren’t ri–”
+
+
+
+“Of course. It’s all so clear to me now.”
+
+
+
+But it’s probably not so clear to readers. That’s because the facts readers must know to understand what is meant are neither stated nor inferred. The convoluted flow of the characters’ statements even is laughable. The result is that the author robs the reader of the emotional conflict that is a key underpinning of good fiction.
+
+
+
+
+
+Give Characters a Unique Way of Speaking
+
+
+
+In real life, every person has his or her own personality and physiology. Because of that, each person has a unique way of expressing themselves and of speaking.
+
+Your story’s characters should reflect that. If they don’t have different ways of speaking, they will all sound alike.
+
+Except perhaps for a character or two, the differences should be fairly subtle so that the reader senses it without being able to pinpoint why. If it’s in the reader’s face, the dialogue can come off as comical.
+
+Begin by determining what is the main personality trait of your character. They might be angry, devious, cheerful or formal. Whatever it may be, the way they speak should remain true to that character. Of course, especially with your major characters, they probably express many emotional states through the book. But emotional states are not the same as personality traits. How a character expresses different emotions all should arise from a single, primary type of personality – e.g. cynical, optimistic, childish, organized, etc.
+
+Word choice is one way to make a character sound unique. Suppose a character were asked “Could you help me?” Consider the many different ways of responding with the word “Yes” there are to that question. If a tough guy, he might respond with a gruff “Yeah?” If always annoyed by others, he might give a quick “What now?” If always busy, he might say “Uh-huh.” If friendly, he might say, “Sure I can.”
+
+Another way to make a character sound unique is the rhythm of their speech. This is the cadence of their sounds or speaking pattern. A smart but cynical young adult probably uses English correctly and makes a lot of witty observations, such as “My greatest fear is that I’ll wake up and find this is not a dream.” A lunkhead teenage boy probably will mispronounce words, mix up homophones, and make a bunch of immature sexual innuendos; for example, after seeing his sexy high school geology teacher for the first time, he might quip, “I think I’ve got a rock formation in my pants.”
+
+A number of factors can influence speech rhythms – the length of the words, the length and complexity of the sentence, the addition of unnecessary words, contraction use, the way words are pronounced, the cadence or speed in which the sentence is spoken are just some of the ways. Vary each of these just a little to match each characters’ personality, and they’ll soon sound like unique people.
+
+Be aware that characters will speak differently to different people. The immature teenage boy probably isn’t going to make sexual innuendos when talking to his mother. But he’ll still mispronounce words and mix up words that sound alike. The goal is to capture the rhythm of their speech no matter who they’re speaking to.
+
+Finally, a character’s personality shouldn’t suddenly shift so that it doesn’t match their rhythm of speech. A character who is bold wouldn’t start speaking as if they are shy simply because they find someone they’re attracted to a little intimidating.
+
+
+
+
+
+Get the Attribution Right
+
+
+
+You want to ensure that readers clearly know who is speaking dialogue. If a reader loses track, then the wrong impression about a character’s intentions and motivations may be formed, which makes understanding the rest of the story difficult. Perhaps worse, when a reader realizes her confusion about who is speaking and is forced to re-read the passage, the fictional dream is broken. If this problem reoccurs, the reader simply may give up on the story or decide not to read other titles by that author.
+
+To ensure there’s no confusion about who is speaking, apply attribution in the appropriate places. Attribution is telling who speaks. For example, Thales said is the attribution in “Go on now, I mean it!” Thales said.
+
+You can employ a number of techniques to ensure proper attribution occurs.
+
+First, directly state who is speaking. In the same sentence as the dialogue, add the speaker’s name and the word “said,” as in the “Thales said” example given above.
+
+Secondly, show the speaker in action. In the same paragraph, have the speaking character do or observe something: Thales glanced at the toys and harrumphed. “I’ll never make good on my promise with those pithikos around.” There’s no need to add “Thales said” to the end of the dialogue because the speaker is implied. In addition, don’t have a character do something and then start a new paragraph in which that character speaks, as this implies someone else is speaking.
+
+During long exchanges of dialogue, even if two characters speak every other line, add attribution every few sentences. Readers easily can lose track of which character is speaking after just a few sentences.
+
+Keep up the pace
+
+In an effort to make clear who is speaking, sometimes you can slow the story’s pace, making for a clunky read.
+
+For example, when an exchange is going on between two characters, there’s no need to state who’s speaking before telling what they said. So instead of writing:
+
+Tony said, “Where was it – we’ll cancel.”
+
+Amanda said, “It was at Southside Clinic, but they’ll charge me if I cancel.”
+
+Tony said, “I’ll call them and explain. You are seriously injured; you need to get to a hospital.”
+
+Instead write:
+
+“Where was it – we’ll cancel,” Tony said.
+
+“It was at Southside Clinic, but they’ll charge me if I cancel,” Amanda said.
+
+“I’ll call them and explain. You’re seriously injured; you need to get to a hospital.”
+
+The reader knows that Tony is responding to Amanda, so there’s no need for attribution in the third line.
+
+The exception is when a new character is introduced. In the above example, if Tony is a new speaker, entering an existing dialogue between Amanda and Sarah, then we need to write that Tony is the speaker before his quotation is given. For example:
+
+“But I have an appointment,” Amanda said, holding her aching stomach..
+
+“Where was it – we’ll cancel,” Sarah said.
+
+“It was at Southside Clinic, but they’ll charge me if I cancel.”
+
+Tony gently took Amanda’s arm. “I’ll call them and explain. You’re seriously injured; you need to get to a hospital.”
+
+In addition, simply describing what a character is doing is sufficient to show that they are giving the next line of spoken dialogue – so long as that dialogue appears in the same paragraph as their described action.
+
+For example, instead of writing:
+
+The nurse decided to step in. She said, “Sweetheart we need to redo these stitches and then get you into surgery and fast. It is dangerous for you to be losing this much blood.”
+
+Write this:
+
+The nurse decided to step in. “Sweetheart, we need to redo these stitches and then get you into surgery and fast. It is dangerous for you to be losing this much blood.”
+
+Where to place “said”
+
+Does placing said before or after attribution – as in Thales said or said Thales – matter?
+
+The answer in large part depends upon how it sounds in a particular sentence. Given that, how a reader responds really is a matter of personal taste.
+
+Still – and this is grounded solely in my training as a journalist – I almost always place said after the name. That’s because said is a largely invisible word that readers just need to spot, rather than actually read, to make a sense of a sentence. What’s important in dialogue, of course, isn’t the word said (the quotation marks show that someone was speaking) but who said it. So readability can be improved if the name is given right after the quotation marks and said is relegated to after the name, as in Thales said. The eye then can naturally flow from the speaker’s name to the next sentence.
+
+I have yet to see any scientific evidence proving this theory taught by some journalism professors and practiced by some editors. Regardless, if most American newspapers and magazine articles follow this pattern, then most American readers likely are comfortable with the construction. Further, with the advent of the Internet, people tend to scan text rather than read it as they would a book, meaning readers probably will prefer any writing that improves their scanning efficiency.
+
+
+
+
+
+Delete Bookisms and the Laugh Track
+
+
+
+Ever notice when reading a story that sometimes an odd word appears when “said” would do? For example, “Well, I’ve never!” she blustered.
+
+If so, you’ve just come across a bookism. A term coined by science fiction writer James Patrick Kelly, a bookism is a long word that means “said.”
+
+Usually writers use a bookism to convey information that is not directly stated in dialogue or description. For example, in “That could be the case,” he admitted, the fill-in for “said” – admitted – is intended to connote that the speaker acknowledges that there’s some truth to a position or explanation that apparently the previous speaker gave.
+
+Rather than tell readers how they should interpret a certain statement, writers almost are always better off to infer it. That may mean rewriting the dialogue or description. For example, instead of writing “I’ve already been to a Packers game,” he boasted, instead write “I’ve already been to a Packers game,” he said, his chin held high.
+
+In many cases, the writer already has inferred how she wants the statement to be interpreted. For example, in the admitted bookism example, the speaker’s statement implies that he acknowledges there’s some truth to a position or explanation with which he disagrees. There’s no need to emphasize it.
+
+Another reason not to use bookisms is that really poor ones sometimes can result in an unintentional Tom Swifty, such as “It’s a unit of electric current,” Tom amplified.
+
+Another type of bookism to particularly avoid is the laugh track. In comedy television shows, fake recorded laughter often is added to suggest that an audience is present – and to suggest to viewers at home that they also should find a joke humorous. In your story, a laugh track is present when you also give readers hints about how they should react. American writer Lewis Shiner coined the term.
+
+Possible examples of a laugh track in your story might include characters laughing at their own jokes or crying when they feel emotional pain.
+
+If you’ve written your story well enough, the reader shouldn’t need to be told that the character is laughing or crying. The reader will feel the humor or inner turmoil themselves and can imagine the characters guffawing or weeping.
+
+By directly telling what characters feel, you run the risk of readers disengaging from the story. That’s because a laugh track is telling rather than showing and so is a form of exposition.
+
+An exception (There’s always an exception!) is when characters have an emotional response that isn’t “ordinary,” such as laughing at an extremely inappropriate joke. This can help give readers a sense of what the character is really like – in this case uncouth and depending on the joke possibly racist, chauvinist or just plain strange.
+
+Don’t worry about overusing “said,” which is a common reason authors like bookisms. As stated earlier, “said” is a nearly invisible word for most readers. In addition, during long exchanges of dialogue between two characters, attribution usually isn’t needed for every line they speak, so many potential uses of “said” are deleted.
+
+
+
+
+
+Don’t Overdescribe in Text Surrounding Dialogue
+
+
+
+Too many details in the text surrounding dialogue can distract readers from what the characters say. This common dialogue mistake may seem to have less to do with what is spoken than the words around it, but that’s not exactly the case.
+
+In fact, the problem usually is a sign of poorly written dialogue. For example:
+
+He held out the drink for me, stood there arrogantly. “What’s your name, pretty lady?”
+
+Readers don’t need to know how he stood, which is arrogantly. Instead, the words the character says should suggest his stance. So instead of telling by writing arrogantly, instead show by changing the dialogue to:
+
+He held out the drink for me, stood there. “So what’s the name of the pretty lady I’m taking home tonight?”
+
+A cousin to this dialogue error is explaining every detail about what a character is doing during a conversation. This actually slows the story. For example:
+
+He handed me the drink. I took it, and he smiled, sat on the sofa cushion next to me, took a moment to settle in, then faced my direction. “Did you have any luck with your family?”
+
+My eyes went to the floor, then I shook my head, smoothed out the crinkle in my dress, and sipped my drink. “I’ve already borrowed money from everyone.”
+
+The reader doesn’t need to have that much explanation. While not exposition, the blow-by-blow account is overwriting. Instead, pare it down to the actions that absolutely are necessary for moving the plot forward and those that show the character’s emotional state. This keeps the dialogue moving. For example:
+
+He handed me the drink then sat on the sofa. “Did you have any luck with your family?”
+
+My eyes went to the floor. “I’ve already borrowed money from everyone.”
+
+The story requires that he hand her a drink and sit next to her (otherwise later the reader will ask, “Wait, when did he sit down?”), but that’s the only information about him that needs to be conveyed to the reader. My eyes went to the floor shows her shame, and that’s a relevant emotional state about her that needs to be conveyed.
+
+The point of dialogue is for the conversation itself to reveal characters’ intentions as they try to achieve their goals. Dialogue cluttered with extraneous information distracts from that and diminishes its effectiveness.
+
+
+
+
+
+Punctuating Dialogue
+
+
+
+Even if the dialogue is tightly written, not using quotation marks and commas correctly can make it confusing to read.
+
+Dialogue is vital in most fiction as it conveys characters’ motivations and provides information the reader must know to move along the story. Getting the punctuation of dialogue right then is of the utmost importance. After all, a misplaced or forgotten quotation mark can confuse readers about what is said and who said it.
+
+
+
+When punctuating dialogue, follow these basic rules:
+
+
+
+Place a quotation mark before what is spoken.
+
+“Hello, Johnson residence.
+
+
+
+Place a quotation mark at end of what is spoken.
+
+“Hello, Johnson residence.”
+
+
+
+If telling who is speaking (aka attribution) after a spoken line of dialogue, use a comma before the closing quotation mark.
+
+“Hello, Johnson residence,” Mary said.
+
+
+
+Lowercase the first word after the closing quotation mark (unless it’s a proper noun).
+
+“Hello, Johnson residence,” said Mary.
+
+
+
+If a question mark or an exclamation mark appears at the end of what’s spoken, there’s no need for the comma.
+
+“Hello, Johnson residence; who is this please?” Mary said.
+
+
+
+If the character continues to speak, keep the dialogue in the same paragraph and use a new quotation mark.
+
+“Hello, Johnson residence,” Mary said. “Who are you calling for?
+
+
+
+…And close it up with a quotation mark.
+
+“Hello, Johnson residence,” Mary said. “Who are you calling for?”
+
+
+
+If a sentence is split by the attribution, use a comma rather than a period after the attribution.
+
+“Sorry,” Mary said, “Mr. Johnson is not here.”
+
+If the dialogue continues to a second paragraph, don’t place a quotation mark at the end of the first paragraph.
+
+“The strangest thing happened,” Mary said. “Someone kept calling me but didn’t answer until the eighth time I picked up the phone.
+
+“He wanted to know if Michael was here.”
+
+Don’t go crazy with the punctuation marks. For example, a single exclamation point rather than three of them will do when a character shouts. Again, what the character says ought to infer how the line is spoken or interpreted.
+
+Punctuating as a Fine Art
+
+Punctuation also can be used to show how a person says their line. Commas, semicolons, dashes, and ellipses all are punctuation marks in your dialogue toolbox.
+
+Which of those punctuation marks you use largely depends on two factors:
+
+• What is the typical, standard mark that should go in that spot in a sentence to improve readability
+
+• What kind of pause the writer wants in the dialogue
+
+For example, the comma might be used to set apart listed items and also suggests a typical pause when speaking: Aunt Janie brought paper plates, napkins, and plasticware to the picnic. Most speakers in real life would pause a tic more after the words “plates” and “napkins” than they would between the words “Janie brought.”
+
+A semicolon is perfectly appropriate in dialogue if you’re showing two complete sentences that are connected via closely linked thoughts and if the pause in speaking is a tic shorter than sentences set off by a period and capital letters. For example: You will become light itself; the holy stream will carry you to the endless kingdom shows the speaker is saying the words with less of a pause than if it were written as You will become light itself. The holy stream will carry you to the endless kingdom.
+
+A dash shows a tic longer of a pause than a semicolon. For example: So, do you think you have kicked it – the pills? That extra tic occurs in this case because the speaker doesn’t quite want to say certain words (“the pills”) but needs to say them to clarify or to show that she possesses intimate knowledge.
+
+Ellipses, however, show a few tics longer of a pause than a dash. For example: The key to being powerful is the ability to manipulate yourself…by creating something good for your…situations…for your relationships. In this case, the extra pauses suggest that the speaker is thinking carefully about how to choose her words in what is a single sentence.
+
+ALL CAPS
+
+While not exactly a punctuation issue, using ALL CAPS in dialogue usually is unnecessary. For example, when trying to show that a character is speaking louder than before or to emphasize a point, writers sometimes capitalize each letter of a word, creating what is typographically known as ALL CAPS. For example: Tinker balled his fists. “Quit BULLYING me!”
+
+The writer may want to reconsider capitalizing all of those letters, however.
+
+Ideally, you wouldn’t need to use ALL CAPS at all. The context alone should be enough to suggest that the character is shouting or angry. Indeed, in the above example, the character balled his fists, showing that he’s upset. In addition, the exclamation point indicates he’s hollering.
+
+There is a time to change the typography or font that’s used, and that’s to emphasize how a word is spoken. You might italicize a word to show that a character is speaking under his breath and doesn’t intend to be heard. ALL CAPS would show a rise in the volume (that is, a shout) when it’s not expected from the character.
+
+Such a typographical change ought to be used rarely, though, or its effectiveness diminishes. In many ways, overusing ALL CAPS is like using the same word over and over – it’s not particularly creative and eventually the repetition is annoying.
+
+ALL CAPS may even make reading you story more difficult. A 1955 study found that ALL CAPS text slowed reading speed by 9.5 percent over a five-minute period. In any case, since many established writers rarely use ALL CAPS, for some readers overuse of it can give your writing an amateurish feel, and that’s not the impression you want to give.
+
+
+
+
+
+Editing Your Dialogue
+
+
+
+When editing your dialogue, read it aloud. If it doesn’t feel right to you – i.e. it doesn’t sound natural or reads like a textbook – then it probably will not feel right to your reader either.
+
+Following is a checklist to help you diagnose and treat issues when editing your dialogue.
+
+Symptom: The dialogue sounds like filler or feels pointless.
+
+Diagnosis: It’s not moving the story forward.
+
+Treatment: Tighten the dialogue so it shows a character’s motivations, usually by inferring their thoughts and feelings.
+
+Symptom: The dialogue sounds too natural.
+
+Diagnosis: It too closely mirrors real conversations.
+
+Treatment: Make the dialogue more succinct by ensuring what characters say further their personal agendas.
+
+Symptom: The dialogue doesn’t sound like how someone would speak.
+
+Diagnosis: It tells rather than shows.
+
+Treatment: Use concrete details and gestures that infer (or show).
+
+Symptom: The dialogue is dull and matches what people actually say to one another in real life.
+
+Diagnosis: It’s small talk or a courtesy.
+
+Treatment: Delete the small talk and replace it with dialogue in which characters attempt to further their goals.
+
+Symptom: The dialogue reads like an encyclopedia entry or a newspaper article.
+
+Diagnosis: It’s an info dump.
+
+Treatment: Pare the dialogue down to just a few words in which only the most relevant information for the reader is given.
+
+Symptom: The dialogue consists of one character speaking in a long paragraph or across several pages.
+
+Diagnosis: It’s a speech or soliloquy, which often is an info dump.
+
+Treatment: Pare down the speech to just a few words in which only the most relevant information for the reader is given.
+
+Symptom: The dialogue sounds choppy.
+
+Diagnosis: Your characters are engaged in mime conversation.
+
+Treatment: Let the characters finish their sentences or briefly elaborate on what they’ve said.
+
+Symptom: Every character sounds alike.
+
+Diagnosis: The characters are making the same word choices and using the same speech patterns.
+
+Treatment: Give each character a unique vocabulary and rhythm of speaking.
+
+Symptom: Who is speaking becomes unclear.
+
+Diagnosis: More attribution is needed.
+
+Treatment: Sprinkle in attribution every four or five lines.
+
+Symptom: “Said” appears all over the dialogue.
+
+Diagnosis: “Said” is overused.
+
+Treatment: Reduce the amount of attribution and place “said” after the character’s name.
+
+Symptom: Odd or even comical words appear in the attribution.
+
+Diagnosis: A replacement for “said” is being used, creating a bookism.
+
+Treatment: Stick to “said” and possibly reduce the amount of attribution.
+
+Symptom: The text surrounding the dialogue distracts from what is being said.
+
+Diagnosis: The character’s behavior is overdescribed and pare down the text around what is spoken.
+
+Treatment: Revise the dialogue so it infers the characters’ emotional state.
+
+Symptom: When characters start or stop speaking is unclear.
+
+Diagnosis: The dialogue is not punctuated correctly.
+
+Treatment: Properly punctuate the dialogue with quotation marks, commas and end marks.
+
+
+
+
+
+If you enjoyed this book, please take a few moments to write a review of it.
+
+Thank you!
+
+
+
+
+
+About the Author
+
+Rob Bignell is the owner and chief editor of Inventing Reality Editing Service, which meets the editing and proofreading needs of writers both new and published. Several of his short stories in the literary and science fiction genres have been published, and he is the author of the literary novel Windmill, the nonfiction 7 Minutes a Day…, Best Sights to See, Hikes with Tykes, Headin’ to the Cabin, and Hittin’ the Trail guidebooks, a poetry collection and several children’s books. For more than two decades, he worked as an award-winning journalist, with half of those years spent as an editor. He spent another seven years as an English teacher and community college journalism instructor. He holds a Master’s degree in English and a Bachelor’s in journalism and English.
+
+
+
+
+
+Books in the
+
+Storytelling 101 Quick Read Series
+
+Writing
+
+• Devise Your Story’s Plot
+
+• Write Your Story’s First Page
+
+• Build Your Story’s Setting
+
+• Create Your Story’s Character (coming July 2024)
+
+• Mastering Point of View
+
+• Mastering Show Don’t Tell
+
+• Write Engaging, Natural Dialogue
+
+• Following a Writing Process: Fiction
+
+• Following a Writing Process: Nonfiction
+
+• Overcoming Writer’s Block
+
+Self-Publishing
+
+• Format Your Ebook
+
+• Design Your Ebook Cover
+
+• Upload Your Ebook to KindleDP
+
+• Self-Publish Your Ebook Bundle (ebook only)
+
+• Format Your Paperback
+
+• Design Your Paperback Cover
+
+• Upload Your Paperback to KindleDP
+
+• Self-Publish Your Paperback Bundle (ebook only)
+
+Promoting Your Book
+
+• Create Your Author’s Platform
+
+• Build Your Author’s Website
+
+• Nail Your Book Reading and Signing
+
+• Sell Your Book with Amazon Ads
+
+
+
+
+
+HIRE THIS BOOK’S AUTHOR
+
+TO EDIT YOUR MANUSCRIPT!
+
+If you’re a writer with a novel or nonfiction manuscript in need of proofreading or editing, send it my way. Having your story proofread or edited before submitting it can prove invaluable. In a publishing world where your story faces heavy competition, it needs a second eye to make sure it is more marketable and to give it the edge. Even if your story is never published, having that second eye can provide insights that help you master your craft.
+
+LEARN MORE HERE
+
+
+
+
+
+CHECK OUT THESE OTHER
+
+GREAT WRITING GUIDEBOOKS
+
+BY THE AUTHOR
+
+• 7 Minutes a Day to Your Bestseller – Novel writers receive expert advice on topics like motivating yourself to write, starting your story with exciting opening lines, creating intriguing characters, mastering the craft of writing to elevate your style, and pitching your story to potential publishers.
+
+• 7 Minutes a Day to a Self-Published Book – Whether writing a novel or nonfiction, whether planning to print a paperback or an ebook, this book guides you through the self-publishing process, from the title page to the index, from designing a cover to formatting your manuscript.
+
+• 7 Minutes a Day to Promoting Your Book – You’ll develop a strategy that will get articles about your self-published book in newspapers, magazines, on radio and television programs, posted on blogs, and linked to on websites, while landing you book signings and readings, all at virtually no cost.
+
+• 7 Minutes a Day to Mastering the Craft of Writing – Craft is as important to storytelling as the plot or characters. This book gives you 50 tried-and-true techniques to improve your writing craftsmanship, including using active voice, showing not telling, ramping up dramatic tension, and being more descriptive.
+
+• Storystarters: 200+ Writing Prompts That Lead To Stories – Storystarters presents more than 200 writing prompts centered on exciting and interesting conflicts for your protagonist to solve. The prompts are divided among more than 50 topics and pit your story’s hero against nature, another person, society, God and himself in various scenarios.
+
+• Writing Affirmations: A Collection of Positive Messages to Inspire Writers – Suffering from writer’s block? Self-doubt about your talent? Has creative writing lost its joy? You can reclaim the pleasure of writing and pen the book you’ve always dreamed of. Respected and award-winning author Rob Bignell offers uplifting, meaningful phrases that can be read out loud or internalized weekly over the course of a year. Writing prompts and tips follow each affirmation, giving you the inspiration and motivation to keep writing.
+
+
+
+
+
+WANT TO BECOME A BETTER WRITER?
+
+Follow this book’s blog, where you’ll find:
+
+• Tips for making your writing stronger
+
+• Lists of great ideas for getting published
+
+• Questions about writing and marketing answered
+
+• Product reviews
+
+• News about the book series and author
+
+VISIT ONLINE
+
+
+
+
+
+GET CONNECTED!
+
+Follow the author for more useful writing and self-publishing tips:
+
+• Blog
+
+• BlueSky
+
+• Cohost
+
+• CounterSocial
+
+• Facebook
+
+• Instagram
+
+• LinkedIn
+
+• Mastodon
+
+• MeWe
+
+• Minds
+
+• Pinterest
+
+• Podcast
+
+• Spoutible
+
+• Threads
+
+• Tribel
+
+• Website
+
+• Xing
+
+• X/Twitter
+
+
+
+
+
