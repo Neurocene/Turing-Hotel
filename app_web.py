@@ -319,10 +319,12 @@ def normalized_scene_aliases(scene_id):
 def parse_scene_media(path, scene_id):
     """
     Policy unica per tutte le scene:
-    - location.jpg = cover principale
+    - location.jpg = cover principale comune
+    - location.noa.jpg = cover principale solo Noa
+    - location.ada.jpg = cover principale solo Ada
     - location-1.jpg / location.2.mp4 = media comuni
-    - location.noa.1.jpg = solo Noa
-    - location.ada.1.jpg = solo Ada
+    - location.noa.1.jpg = media solo Noa
+    - location.ada.1.jpg = media solo Ada
     """
 
     if not path.is_file():
@@ -346,6 +348,18 @@ def parse_scene_media(path, scene_id):
             continue
 
         remainder = compact[len(alias):]
+
+        if remainder == "noa":
+            return {
+                "type": "cover_noa",
+                "number": 0
+            }
+
+        if remainder == "ada":
+            return {
+                "type": "cover_ada",
+                "number": 0
+            }
 
         if remainder.startswith("noa"):
             number_part = remainder[len("noa"):]
@@ -378,11 +392,26 @@ def parse_scene_media(path, scene_id):
 # COVER PRINCIPALE DELLA SCENA
 # ============================================================
 
-def get_scene_cover_image(scene_id):
-    candidates = []
+def get_scene_cover_image(scene_id, character=None):
+    """
+    Cerca prima la cover specifica del POV:
+    location.noa.jpg / location.ada.jpg
+    e, se manca, usa location.jpg come fallback comune.
+    """
 
     if not ASSETS_DIR.exists():
         return None
+
+    character = (character or "").lower()
+    wanted_specific = None
+
+    if character == "noa":
+        wanted_specific = "cover_noa"
+    elif character == "ada":
+        wanted_specific = "cover_ada"
+
+    specific = []
+    common = []
 
     for path in ASSETS_DIR.iterdir():
 
@@ -391,21 +420,28 @@ def get_scene_cover_image(scene_id):
         if not parsed:
             continue
 
-        if parsed["type"] != "cover":
-            continue
-
         if path.suffix.lower() not in IMAGE_EXTENSIONS:
             continue
 
-        candidates.append(path)
+        if wanted_specific and parsed["type"] == wanted_specific:
+            specific.append(path)
 
-    if not candidates:
-        return None
+        if parsed["type"] == "cover":
+            common.append(path)
 
-    return sorted(
-        candidates,
-        key=lambda p: p.name.lower()
-    )[0]
+    if specific:
+        return sorted(
+            specific,
+            key=lambda p: p.name.lower()
+        )[0]
+
+    if common:
+        return sorted(
+            common,
+            key=lambda p: p.name.lower()
+        )[0]
+
+    return None
 
 
 # ============================================================
@@ -433,7 +469,11 @@ def find_scene_media(scene_id, character):
         media_type = parsed["type"]
         number = parsed["number"]
 
-        if media_type == "cover":
+        if media_type in [
+            "cover",
+            "cover_noa",
+            "cover_ada"
+        ]:
             continue
 
         if media_type == "shared":
@@ -505,6 +545,7 @@ def empty_scene(scene_id, title):
         "story_draft": "",
         "story_feedback": "",
         "approved_context": "",
+        "advisor_messages": [],
         "messages": {
             "Noa": [],
             "Ada": []
@@ -913,6 +954,13 @@ def migrate_state(old_state):
 
         if not old_scene:
             continue
+
+        new_scene["advisor_messages"] = safe_list(
+            old_scene.get(
+                "advisor_messages",
+                []
+            )
+        )
 
         old_messages = old_scene.get(
             "messages",
@@ -1374,6 +1422,315 @@ Non citarli.
                 load_writer_books()
         }
     )
+
+
+# ============================================================
+# CONSULENTE NARRATIVO
+# ============================================================
+
+def get_all_previous_memories(current_scene_id):
+
+    return {
+        "Noa": get_previous_memories(
+            current_scene_id,
+            "Noa"
+        ),
+        "Ada": get_previous_memories(
+            current_scene_id,
+            "Ada"
+        )
+    }
+
+
+def ask_narrative_advisor(scene):
+
+    messages = safe_list(
+        scene.get(
+            "advisor_messages",
+            []
+        )
+    )
+
+    instructions = """
+Sei il CONSULENTE NARRATIVO di Turing Hotel.
+
+Non interpreti Noa o Ada.
+Non sei il Creatore della scena.
+Non sei l'Agente Scrittore.
+
+Il tuo interlocutore è l'autore.
+Il tuo compito è ragionare CON lui sulla scena e fare proposte.
+
+Puoi:
+- individuare problemi di coerenza;
+- ricordare elementi del canone utili alla scena;
+- suggerire collegamenti con il Convegno e la storia del Turing Hotel;
+- proporre alternative narrative;
+- segnalare occasioni sprecate;
+- suggerire oggetti, luoghi, informazioni o tensioni già compatibili con il canone;
+- confrontare due possibili soluzioni;
+- rispondere a domande dell'autore;
+- proporre fino a tre opzioni quando è utile.
+
+Devi distinguere sempre fra:
+1. FATTI CANONICI già stabiliti;
+2. PROPOSTE, che restano ipotesi finché l'autore non le approva.
+
+Non trasformare mai una tua proposta in un fatto avvenuto.
+Non modificare automaticamente il contesto della scena.
+Non decidere cosa pensano o provano Noa e Ada.
+Non scrivere al posto loro.
+
+Il file CONTESTO_TURING_HOTEL è la tua fonte canonica principale.
+Usa anche ciò che l'autore ha già scritto nella scena, la bozza corrente,
+il contesto approvato e i ricordi precedenti per individuare continuità e conseguenze.
+
+Non usare i file LIBRIAGENTI: appartengono esclusivamente all'Agente Scrittore.
+
+Rispondi in italiano, in modo concreto e dialogico.
+Se fai una proposta, spiega brevemente perché potrebbe funzionare.
+"""
+
+    return query_openai(
+        instructions,
+        {
+            "CONTESTO_TURING_HOTEL":
+                load_turing_context(),
+
+            "SCENA":
+                scene.get(
+                    "title",
+                    ""
+                ),
+
+            "INDICAZIONI_AUTORE":
+                scene.get(
+                    "author_context",
+                    ""
+                ),
+
+            "BOZZA_DEL_CREATORE":
+                scene.get(
+                    "story_draft",
+                    ""
+                ),
+
+            "CORREZIONI_AUTORE":
+                scene.get(
+                    "story_feedback",
+                    ""
+                ),
+
+            "CONTESTO_APPROVATO":
+                scene.get(
+                    "approved_context",
+                    ""
+                ),
+
+            "RICORDI_PRECEDENTI":
+                get_all_previous_memories(
+                    scene["id"]
+                ),
+
+            "CONVERSAZIONE_CON_L_AUTORE":
+                messages
+        }
+    )
+
+
+def render_narrative_advisor(scene):
+
+    scene.setdefault(
+        "advisor_messages",
+        []
+    )
+
+    messages = scene[
+        "advisor_messages"
+    ]
+
+    with st.expander(
+        "CONSULENTE NARRATIVO",
+        expanded=False
+    ):
+
+        st.caption(
+            "Parla con un agente che conosce il canone e la scena. "
+            "Può darti consigli e proporre alternative, ma non cambia nulla senza il tuo consenso."
+        )
+
+        if messages:
+
+            history = st.container(
+                height=280,
+                border=True
+            )
+
+            with history:
+
+                for message in messages:
+
+                    if not isinstance(
+                        message,
+                        dict
+                    ):
+                        continue
+
+                    role = message.get(
+                        "role",
+                        "assistant"
+                    )
+
+                    text = str(
+                        message.get(
+                            "text",
+                            ""
+                        )
+                    )
+
+                    if role == "user":
+                        st.markdown(
+                            "**Tu:**"
+                        )
+                        st.write(text)
+                    else:
+                        st.markdown(
+                            "**Consulente:**"
+                        )
+                        st.write(text)
+
+        quick_prompt = st.selectbox(
+            "Domanda rapida",
+            [
+                "Scrivi una domanda libera",
+                "Cosa non funziona o manca in questa scena?",
+                "Dammi tre alternative narrative compatibili con il canone.",
+                "Come posso collegare meglio questa scena al Convegno del Turing Hotel?",
+                "Quale elemento del canone potrei far emergere senza appesantire la scena?",
+                "Controlla la coerenza con ciò che è già successo."
+            ],
+            key=f"advisor_quick_{scene['id']}"
+        )
+
+        with st.form(
+            key=f"advisor_form_{scene['id']}",
+            clear_on_submit=True
+        ):
+
+            advisor_text = st.text_area(
+                "Messaggio al consulente",
+                height=90,
+                placeholder=(
+                    "Per esempio: questa scena è troppo teorica? "
+                    "Come posso far emergere il convegno senza spiegarlo?"
+                )
+            )
+
+            ask = st.form_submit_button(
+                "CHIEDI AL CONSULENTE",
+                use_container_width=True
+            )
+
+        if ask:
+
+            prompt = advisor_text.strip()
+
+            if not prompt and quick_prompt != "Scrivi una domanda libera":
+                prompt = quick_prompt
+
+            if not prompt:
+                st.warning(
+                    "Scrivi una domanda o scegli una domanda rapida."
+                )
+            else:
+
+                messages.append({
+                    "role": "user",
+                    "text": prompt
+                })
+
+                with st.spinner(
+                    "Il consulente sta ragionando sulla scena..."
+                ):
+
+                    reply = ask_narrative_advisor(
+                        scene
+                    )
+
+                messages.append({
+                    "role": "assistant",
+                    "text": clean_character_response(
+                        reply
+                    )
+                })
+
+                save_state()
+                st.rerun()
+
+        last_advice = None
+
+        for message in reversed(messages):
+            if (
+                isinstance(message, dict)
+                and message.get("role") == "assistant"
+                and str(message.get("text", "")).strip()
+            ):
+                last_advice = str(
+                    message.get(
+                        "text",
+                        ""
+                    )
+                ).strip()
+                break
+
+        if last_advice:
+
+            apply_col, clear_col = st.columns(2)
+
+            with apply_col:
+
+                if st.button(
+                    "USA L'ULTIMA PROPOSTA COME CORREZIONE",
+                    key=f"advisor_apply_{scene['id']}",
+                    use_container_width=True
+                ):
+
+                    existing = scene.get(
+                        "story_feedback",
+                        ""
+                    ).strip()
+
+                    addition = (
+                        "PROPOSTA DEL CONSULENTE NARRATIVO:\n"
+                        + last_advice
+                    )
+
+                    scene["story_feedback"] = (
+                        f"{existing}\n\n{addition}"
+                        if existing
+                        else addition
+                    )
+
+                    save_state()
+                    st.success(
+                        "La proposta è stata aggiunta alle correzioni del Creatore della scena. "
+                        "Ora puoi modificarla oppure premere RISCRIVI."
+                    )
+
+            with clear_col:
+
+                if st.button(
+                    "AZZERA CHAT CONSULENTE",
+                    key=f"advisor_clear_{scene['id']}",
+                    use_container_width=True
+                ):
+
+                    scene[
+                        "advisor_messages"
+                    ] = []
+
+                    save_state()
+                    st.rerun()
 
 
 # ============================================================
@@ -2499,7 +2856,8 @@ Storia di {pov}
     )
 
     cover = get_scene_cover_image(
-        scene["id"]
+        scene["id"],
+        pov
     )
 
     if cover:
@@ -2511,10 +2869,15 @@ Storia di {pov}
 
     else:
 
+        location_name = SCENE_ALIASES[
+            scene["id"]
+        ][0]
+
         st.caption(
-            f"Immagine principale non trovata: "
-            f"aggiungi in assets il file "
-            f"{SCENE_ALIASES[scene['id']][0]}.jpg"
+            f"Immagine principale non trovata. "
+            f"Per una cover comune usa {location_name}.jpg. "
+            f"Per una cover diversa per POV usa "
+            f"{location_name}.{pov.lower()}.jpg."
         )
 
 
@@ -2535,6 +2898,10 @@ def render_standard_scene(
     )
 
     render_story_editor(
+        scene
+    )
+
+    render_narrative_advisor(
         scene
     )
 
@@ -2573,6 +2940,10 @@ def render_return(
     )
 
     render_story_editor(
+        scene
+    )
+
+    render_narrative_advisor(
         scene
     )
 
