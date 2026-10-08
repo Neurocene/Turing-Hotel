@@ -147,18 +147,18 @@ div.stButton > button:hover {
 .story-title {
     font-family: Georgia, serif;
     font-size: 1.25rem;
-    margin-bottom: .35rem;
+    margin-bottom: .25rem;
 }
 
 .story-subtitle {
     color: #90979b;
     font-size: .78rem;
-    margin-bottom: .6rem;
+    margin-bottom: .45rem;
 }
 
 .chat-title {
     font-family: Georgia, serif;
-    font-size: 1.35rem;
+    font-size: 1.4rem;
     margin-bottom: .2rem;
 }
 
@@ -672,6 +672,7 @@ def migrate_state(old_state):
             old_agent.get("profile"),
             str
         ):
+
             fresh[
                 "agents"
             ][character][
@@ -684,6 +685,7 @@ def migrate_state(old_state):
             old_agent.get("memory"),
             str
         ):
+
             fresh[
                 "agents"
             ][character][
@@ -776,6 +778,7 @@ def migrate_state(old_state):
                 old_scene.get(field),
                 str
             ):
+
                 new_scene[field] = (
                     old_scene[field]
                 )
@@ -891,6 +894,7 @@ def query_openai(
 ):
 
     if not client:
+
         return (
             "OPENAI_API_KEY non configurata."
         )
@@ -1005,7 +1009,9 @@ def get_previous_memories(
         scene = next(
             (
                 s
-                for s in state["scenes"]
+                for s in state[
+                    "scenes"
+                ]
                 if s["id"] == scene_id
             ),
             None
@@ -1036,7 +1042,9 @@ def get_previous_memories(
 # CREATORE DELLA SCENA
 # ============================================================
 
-def generate_story_context(scene):
+def generate_story_context(
+    scene
+):
 
     instructions = """
 Sei il CREATORE DELLA SCENA
@@ -1129,7 +1137,9 @@ diventerà realtà narrativa.
 # AGENTE SCRITTORE
 # ============================================================
 
-def refine_context_with_writer(scene):
+def refine_context_with_writer(
+    scene
+):
 
     instructions = """
 Sei l'AGENTE SCRITTORE
@@ -1190,10 +1200,12 @@ Non citarli.
 
 
 # ============================================================
-# LOCATION IMAGES
+# LOCATION IMAGE
 # ============================================================
 
-def scene_location_name(scene_id):
+def scene_location_name(
+    scene_id
+):
 
     mapping = {
         "hall": "hall",
@@ -1209,7 +1221,9 @@ def scene_location_name(scene_id):
     )
 
 
-def find_image_by_base_name(base_name):
+def find_image_by_base_name(
+    base_name
+):
 
     for extension in [
         ".jpg",
@@ -1230,7 +1244,9 @@ def find_image_by_base_name(base_name):
     return None
 
 
-def get_scene_cover_image(scene_id):
+def get_scene_cover_image(
+    scene_id
+):
 
     location = scene_location_name(
         scene_id
@@ -1241,120 +1257,179 @@ def get_scene_cover_image(scene_id):
     )
 
 
-def get_scene_context_image(scene_id):
-
-    location = scene_location_name(
-        scene_id
-    )
-
-    return find_image_by_base_name(
-        f"{location}-1"
-    )
-
-
-def get_character_portrait(pov):
-
-    if pov == "Noa":
-        return NOA_IMAGE
-
-    return ADA_IMAGE
-
-
 # ============================================================
-# STORY EDITOR UI
+# STORY EDITOR - TUTTA LARGHEZZA
 # ============================================================
 
-def render_story_editor(scene):
+def render_story_editor(
+    scene
+):
 
-    context_image = (
-        get_scene_context_image(
-            scene["id"]
-        )
-    )
+    with st.container(
+        border=True
+    ):
 
-    editor_col, image_col = st.columns(
-        [1.4, 1],
-        gap="medium"
-    )
-
-    with editor_col:
-
-        with st.container(
-            border=True
-        ):
-
-            st.markdown(
-                """
+        st.markdown(
+            """
 <div class="story-title">
 Creatore della scena
 </div>
 """,
-                unsafe_allow_html=True
-            )
+            unsafe_allow_html=True
+        )
 
-            st.markdown(
-                """
+        st.markdown(
+            """
 <div class="story-subtitle">
 Descrivi brevemente la situazione narrativa.
 </div>
 """,
-                unsafe_allow_html=True
+            unsafe_allow_html=True
+        )
+
+        scene[
+            "author_context"
+        ] = st.text_area(
+            "Indicazioni dell'autore",
+
+            value=scene.get(
+                "author_context",
+                ""
+            ),
+
+            height=75,
+
+            placeholder=(
+                "Cosa sta accadendo? "
+                "Chi è presente? "
+                "Qual è la situazione?"
+            ),
+
+            key=(
+                f"author_context_"
+                f"{scene['id']}"
             )
+        )
 
-            scene[
-                "author_context"
-            ] = st.text_area(
-                "Indicazioni dell'autore",
+        create_col, save_col = st.columns(
+            [1.4, 1]
+        )
 
-                value=scene.get(
-                    "author_context",
-                    ""
-                ),
+        with create_col:
 
-                height=78,
-
-                placeholder=(
-                    "Cosa sta accadendo? "
-                    "Chi è presente? "
-                    "Qual è la situazione?"
-                ),
-
+            if st.button(
+                "CREA CONTESTO",
                 key=(
-                    f"author_context_"
+                    f"create_context_"
                     f"{scene['id']}"
-                )
-            )
+                ),
+                use_container_width=True
+            ):
 
-            create_col, save_col = (
-                st.columns(
-                    [1.3, 1]
-                )
-            )
+                if not scene[
+                    "author_context"
+                ].strip():
 
-            with create_col:
+                    st.warning(
+                        "Scrivi prima "
+                        "alcune indicazioni."
+                    )
 
-                if st.button(
-                    "CREA CONTESTO",
-                    key=(
-                        f"create_context_"
-                        f"{scene['id']}"
-                    ),
-                    use_container_width=True
-                ):
+                else:
 
-                    if not scene[
-                        "author_context"
-                    ].strip():
+                    with st.spinner(
+                        "Creazione del contesto..."
+                    ):
 
-                        st.warning(
-                            "Scrivi prima "
-                            "alcune indicazioni."
+                        scene[
+                            "story_draft"
+                        ] = (
+                            generate_story_context(
+                                scene
+                            )
                         )
 
-                    else:
+                    save_state()
+
+                    st.rerun()
+
+        with save_col:
+
+            if st.button(
+                "SALVA",
+                key=(
+                    f"save_context_notes_"
+                    f"{scene['id']}"
+                ),
+                use_container_width=True
+            ):
+
+                save_state()
+
+                st.success(
+                    "Salvato."
+                )
+
+        # ====================================================
+        # BOZZA
+        # ====================================================
+
+        if scene.get(
+            "story_draft",
+            ""
+        ):
+
+            with st.expander(
+                "BOZZA DELLA SCENA",
+                expanded=False
+            ):
+
+                st.markdown(
+                    scene[
+                        "story_draft"
+                    ]
+                )
+
+                scene[
+                    "story_feedback"
+                ] = st.text_area(
+                    "Correzioni",
+
+                    value=scene.get(
+                        "story_feedback",
+                        ""
+                    ),
+
+                    height=65,
+
+                    placeholder=(
+                        "Correggi o aggiungi "
+                        "indicazioni..."
+                    ),
+
+                    key=(
+                        f"story_feedback_"
+                        f"{scene['id']}"
+                    )
+                )
+
+                rewrite_col, writer_col = (
+                    st.columns(2)
+                )
+
+                with rewrite_col:
+
+                    if st.button(
+                        "RISCRIVI",
+                        key=(
+                            f"rewrite_context_"
+                            f"{scene['id']}"
+                        ),
+                        use_container_width=True
+                    ):
 
                         with st.spinner(
-                            "Creazione del contesto..."
+                            "Riscrittura..."
                         ):
 
                             scene[
@@ -1366,172 +1441,81 @@ Descrivi brevemente la situazione narrativa.
                             )
 
                         save_state()
+
                         st.rerun()
 
-            with save_col:
-
-                if st.button(
-                    "SALVA",
-                    key=(
-                        f"save_context_notes_"
-                        f"{scene['id']}"
-                    ),
-                    use_container_width=True
-                ):
-
-                    save_state()
-
-                    st.success(
-                        "Salvato."
-                    )
-
-            if scene.get(
-                "story_draft",
-                ""
-            ):
-
-                with st.expander(
-                    "BOZZA DELLA SCENA",
-                    expanded=False
-                ):
-
-                    st.markdown(
-                        scene[
-                            "story_draft"
-                        ]
-                    )
-
-                    scene[
-                        "story_feedback"
-                    ] = st.text_area(
-                        "Correzioni",
-
-                        value=scene.get(
-                            "story_feedback",
-                            ""
-                        ),
-
-                        height=65,
-
-                        placeholder=(
-                            "Correggi o aggiungi "
-                            "indicazioni..."
-                        ),
-
-                        key=(
-                            f"story_feedback_"
-                            f"{scene['id']}"
-                        )
-                    )
-
-                    rewrite_col, writer_col = (
-                        st.columns(2)
-                    )
-
-                    with rewrite_col:
-
-                        if st.button(
-                            "RISCRIVI",
-                            key=(
-                                f"rewrite_context_"
-                                f"{scene['id']}"
-                            ),
-                            use_container_width=True
-                        ):
-
-                            with st.spinner(
-                                "Riscrittura..."
-                            ):
-
-                                scene[
-                                    "story_draft"
-                                ] = (
-                                    generate_story_context(
-                                        scene
-                                    )
-                                )
-
-                            save_state()
-                            st.rerun()
-
-                    with writer_col:
-
-                        if st.button(
-                            "AGENTE SCRITTORE",
-                            key=(
-                                f"writer_refine_"
-                                f"{scene['id']}"
-                            ),
-                            use_container_width=True
-                        ):
-
-                            with st.spinner(
-                                "Rifinitura..."
-                            ):
-
-                                scene[
-                                    "story_draft"
-                                ] = (
-                                    refine_context_with_writer(
-                                        scene
-                                    )
-                                )
-
-                            save_state()
-                            st.rerun()
+                with writer_col:
 
                     if st.button(
-                        "APPROVA CONTESTO",
-                        type="primary",
+                        "AGENTE SCRITTORE",
                         key=(
-                            f"approve_context_"
+                            f"writer_refine_"
                             f"{scene['id']}"
                         ),
                         use_container_width=True
                     ):
 
-                        scene[
-                            "approved_context"
-                        ] = scene[
-                            "story_draft"
-                        ]
+                        with st.spinner(
+                            "Rifinitura..."
+                        ):
+
+                            scene[
+                                "story_draft"
+                            ] = (
+                                refine_context_with_writer(
+                                    scene
+                                )
+                            )
 
                         save_state()
+
                         st.rerun()
 
-            if scene.get(
-                "approved_context",
-                ""
-            ):
-
-                with st.expander(
-                    "CONTESTO APPROVATO",
-                    expanded=False
+                if st.button(
+                    "APPROVA CONTESTO",
+                    type="primary",
+                    key=(
+                        f"approve_context_"
+                        f"{scene['id']}"
+                    ),
+                    use_container_width=True
                 ):
 
-                    st.markdown(
-                        scene[
-                            "approved_context"
-                        ]
-                    )
+                    scene[
+                        "approved_context"
+                    ] = scene[
+                        "story_draft"
+                    ]
 
-                    st.caption(
-                        "Noa e Ada usano questo "
-                        "testo come realtà della scena."
-                    )
+                    save_state()
 
-    with image_col:
+                    st.rerun()
 
-        if (
-            context_image
-            and
-            context_image.exists()
+        # ====================================================
+        # CONTESTO APPROVATO
+        # ====================================================
+
+        if scene.get(
+            "approved_context",
+            ""
         ):
 
-            st.image(
-                str(context_image),
-                use_container_width=True
-            )
+            with st.expander(
+                "CONTESTO APPROVATO",
+                expanded=False
+            ):
+
+                st.markdown(
+                    scene[
+                        "approved_context"
+                    ]
+                )
+
+                st.caption(
+                    "Noa e Ada usano "
+                    "questo testo come "
+                    "realtà della scena."
+                )
 
 
 # ============================================================
@@ -1590,7 +1574,8 @@ MEMORIA:
 
 Non inventare
 come fatto qualcosa
-che non compare nei tuoi dati.
+che non compare
+nei tuoi dati.
 
 Puoi dubitare,
 sbagliare,
@@ -1686,7 +1671,9 @@ def answer_as_character(
                 character,
 
             "SCENA":
-                scene["title"],
+                scene[
+                    "title"
+                ],
 
             "CONTESTO_APPROVATO":
                 scene.get(
@@ -1701,7 +1688,9 @@ def answer_as_character(
 
             "RICORDI_PRECEDENTI":
                 get_previous_memories(
-                    scene["id"],
+                    scene[
+                        "id"
+                    ],
                     character
                 ),
 
@@ -1776,8 +1765,7 @@ Conserva:
 - elementi utili
   per le scene future.
 
-Non inventare
-fatti nuovi.
+Non inventare fatti nuovi.
 """
 
     return query_openai(
@@ -1847,7 +1835,7 @@ VIDEO_EXTENSIONS = {
 
 
 # ============================================================
-# MEDIA COMUNI + MEDIA SPECIFICI DEL PERSONAGGIO
+# MEDIA COMUNI + SPECIFICI
 # ============================================================
 
 def find_scene_media(
@@ -1890,13 +1878,13 @@ def find_scene_media(
                 location
             )
 
-            # -----------------------------------------------
-            # SPECIFICO PERSONAGGIO
+            # =================================================
+            # SPECIFICO DEL PERSONAGGIO
             #
             # hall.noa.1.jpg
             # hall.noa.2.mp4
             # hall.ada.1.jpg
-            # -----------------------------------------------
+            # =================================================
 
             character_pattern = (
                 rf"^{escaped_location}\."
@@ -1914,12 +1902,12 @@ def find_scene_media(
                 matched = True
                 break
 
-            # -----------------------------------------------
-            # COMUNE - PUNTO
+            # =================================================
+            # MEDIA COMUNE CON PUNTO
             #
-            # hall.2.jpg
-            # hall.3.mp4
-            # -----------------------------------------------
+            # hall.1.jpg
+            # hall.2.mp4
+            # =================================================
 
             shared_dot_pattern = (
                 rf"^{escaped_location}\."
@@ -1936,41 +1924,24 @@ def find_scene_media(
                 matched = True
                 break
 
-            # -----------------------------------------------
-            # COMUNE - TRATTINO
+            # =================================================
+            # MEDIA COMUNE CON TRATTINO
             #
-            # hall-2.jpg
-            # hall-3.mp4
-            #
-            # IMPORTANTE:
-            # location-1.jpg è riservato
-            # all'immagine del Creatore della scena.
-            # -----------------------------------------------
+            # hall-1.jpg
+            # hall-2.mp4
+            # =================================================
 
-            dash_match = re.match(
-                (
-                    rf"^{escaped_location}-"
-                    rf"(\d+)\."
-                    rf"(jpg|jpeg|png|webp|"
-                    rf"mp4|mov|webm|m4v)$"
-                ),
-                filename
+            shared_dash_pattern = (
+                rf"^{escaped_location}-"
+                rf"(\d+)\."
+                rf"(jpg|jpeg|png|webp|"
+                rf"mp4|mov|webm|m4v)$"
             )
 
-            if dash_match:
-
-                media_number = int(
-                    dash_match.group(1)
-                )
-
-                # location-1.jpg è riservato
-                # alla foto laterale del contesto.
-                if (
-                    media_number == 1
-                    and
-                    suffix in IMAGE_EXTENSIONS
-                ):
-                    continue
+            if re.match(
+                shared_dash_pattern,
+                filename
+            ):
 
                 matched = True
                 break
@@ -2125,6 +2096,21 @@ def render_scene_photos(
         pov
     )
 
+    # Evita di ripetere la cover principale location.jpg
+
+    cover_image = get_scene_cover_image(
+        scene["id"]
+    )
+
+    if cover_image:
+
+        images = [
+            image
+            for image in images
+            if image.resolve()
+            != cover_image.resolve()
+        ]
+
     if not images:
         return
 
@@ -2242,7 +2228,7 @@ def make_memory(
 
 
 # ============================================================
-# CHAT
+# CHAT A TUTTA LARGHEZZA
 # ============================================================
 
 def render_chat_panel(
@@ -2272,94 +2258,92 @@ def render_chat_panel(
         "Altro"
     ]
 
-    portrait = get_character_portrait(
-        pov
-    )
-
     st.markdown("---")
 
-    chat_col, portrait_col = st.columns(
-        [2.35, 1],
-        gap="medium"
-    )
+    # ========================================================
+    # NESSUNA COLONNA LATERALE:
+    # CHAT A TUTTA LARGHEZZA
+    # ========================================================
 
-    with chat_col:
+    with st.container(
+        border=True
+    ):
 
-        with st.container(
-            border=True
-        ):
-
-            st.markdown(
-                f"""
+        st.markdown(
+            f"""
 <div class="chat-title">
 Dialogo con {pov}
 </div>
 """,
-                unsafe_allow_html=True
-            )
+            unsafe_allow_html=True
+        )
 
-            st.markdown(
-                """
+        st.markdown(
+            """
 <div class="chat-subtitle">
 Dialoghi, azioni e riflessioni
 </div>
 """,
-                unsafe_allow_html=True
-            )
+            unsafe_allow_html=True
+        )
 
-            history = st.container(
-                height=360,
-                border=False
-            )
+        history = st.container(
+            height=400,
+            border=False
+        )
 
-            with history:
+        with history:
 
-                if not messages:
+            if not messages:
 
-                    st.caption(
-                        "La conversazione "
-                        "non è ancora iniziata."
+                st.caption(
+                    "La conversazione "
+                    "non è ancora iniziata."
+                )
+
+            for message in messages:
+
+                if not isinstance(
+                    message,
+                    dict
+                ):
+                    continue
+
+                speaker = message.get(
+                    "speaker",
+                    "?"
+                )
+
+                text = message.get(
+                    "text",
+                    ""
+                )
+
+                kind = message.get(
+                    "kind",
+                    "external"
+                )
+
+                role = message.get(
+                    "role",
+                    ""
+                )
+
+                # =================================================
+                # DIALOGO INTERIORE
+                # =================================================
+
+                if kind == "inner":
+
+                    label = (
+                        f"Pensiero di {pov}"
+                        if role == "prompt"
+                        else
+                        f"Riflessione di {pov}"
                     )
 
-                for message in messages:
-
-                    if not isinstance(
-                        message,
-                        dict
-                    ):
-                        continue
-
-                    speaker = message.get(
-                        "speaker",
-                        "?"
-                    )
-
-                    text = message.get(
-                        "text",
-                        ""
-                    )
-
-                    kind = message.get(
-                        "kind",
-                        "external"
-                    )
-
-                    role = message.get(
-                        "role",
-                        ""
-                    )
-
-                    if kind == "inner":
-
-                        label = (
-                            f"Pensiero di {pov}"
-                            if role == "prompt"
-                            else
-                            f"Riflessione di {pov}"
-                        )
-
-                        st.markdown(
-                            f"""
+                    st.markdown(
+                        f"""
 <div class="inner-message">
 <div class="message-name">
 {label}
@@ -2367,13 +2351,17 @@ Dialoghi, azioni e riflessioni
 {text}
 </div>
 """,
-                            unsafe_allow_html=True
-                        )
+                        unsafe_allow_html=True
+                    )
 
-                    elif speaker == pov:
+                # =================================================
+                # RISPOSTA AGENTE
+                # =================================================
 
-                        st.markdown(
-                            f"""
+                elif speaker == pov:
+
+                    st.markdown(
+                        f"""
 <div class="agent-message">
 <div class="message-name">
 {pov}
@@ -2381,13 +2369,17 @@ Dialoghi, azioni e riflessioni
 {text}
 </div>
 """,
-                            unsafe_allow_html=True
-                        )
+                        unsafe_allow_html=True
+                    )
 
-                    else:
+                # =================================================
+                # ALTRO PERSONAGGIO
+                # =================================================
 
-                        st.markdown(
-                            f"""
+                else:
+
+                    st.markdown(
+                        f"""
 <div class="human-message">
 <div class="message-name">
 {speaker}
@@ -2395,235 +2387,239 @@ Dialoghi, azioni e riflessioni
 {text}
 </div>
 """,
-                            unsafe_allow_html=True
-                        )
-
-            memory_col, delete_col = st.columns(
-                2
-            )
-
-            with memory_col:
-
-                if st.button(
-                    "CREA RICORDO SCENA",
-                    key=(
-                        f"memory_"
-                        f"{scene['id']}_"
-                        f"{pov}"
-                    ),
-                    use_container_width=True
-                ):
-
-                    with st.spinner(
-                        "Creazione del ricordo..."
-                    ):
-
-                        success = make_memory(
-                            scene,
-                            pov,
-                            extra_event
-                        )
-
-                    if not success:
-
-                        st.warning(
-                            "Non c'è ancora "
-                            "nulla da ricordare."
-                        )
-
-                    else:
-
-                        st.rerun()
-
-            with delete_col:
-
-                if st.button(
-                    "CANCELLA CONVERSAZIONE",
-                    key=(
-                        f"clear_"
-                        f"{scene['id']}_"
-                        f"{pov}"
-                    ),
-                    use_container_width=True
-                ):
-
-                    reset_scene_chat(
-                        scene,
-                        pov
+                        unsafe_allow_html=True
                     )
+
+        # ====================================================
+        # MEMORY + CANCELLA
+        # ====================================================
+
+        memory_col, delete_col = (
+            st.columns(2)
+        )
+
+        with memory_col:
+
+            if st.button(
+                "CREA RICORDO SCENA",
+                key=(
+                    f"memory_"
+                    f"{scene['id']}_"
+                    f"{pov}"
+                ),
+                use_container_width=True
+            ):
+
+                with st.spinner(
+                    "Creazione del ricordo..."
+                ):
+
+                    success = make_memory(
+                        scene,
+                        pov,
+                        extra_event
+                    )
+
+                if not success:
+
+                    st.warning(
+                        "Non c'è ancora "
+                        "nulla da ricordare."
+                    )
+
+                else:
 
                     st.rerun()
 
-            memory = scene[
-                "diary"
-            ][pov]
+        with delete_col:
 
-            if memory:
+            if st.button(
+                "CANCELLA CONVERSAZIONE",
+                key=(
+                    f"clear_"
+                    f"{scene['id']}_"
+                    f"{pov}"
+                ),
+                use_container_width=True
+            ):
 
-                with st.expander(
-                    "RICORDO DELLA SCENA",
-                    expanded=False
-                ):
+                reset_scene_chat(
+                    scene,
+                    pov
+                )
 
-                    st.markdown(
-                        f"""
+                st.rerun()
+
+        # ====================================================
+        # MEMORY
+        # ====================================================
+
+        memory = scene[
+            "diary"
+        ][pov]
+
+        if memory:
+
+            with st.expander(
+                "RICORDO DELLA SCENA",
+                expanded=False
+            ):
+
+                st.markdown(
+                    f"""
 <div class="diary">
 {memory}
 </div>
 """,
-                        unsafe_allow_html=True
+                    unsafe_allow_html=True
+                )
+
+        st.markdown("---")
+
+        # ====================================================
+        # INPUT COMPOSTO
+        # ====================================================
+
+        with st.form(
+            key=(
+                f"chat_form_"
+                f"{scene['id']}_"
+                f"{pov}"
+            ),
+            clear_on_submit=True
+        ):
+
+            # menu compatto a sinistra
+            # spiegazione a destra
+
+            speaker_col, info_col = st.columns(
+                [1, 3.5]
+            )
+
+            with speaker_col:
+
+                speaker = st.selectbox(
+                    "Chi parla",
+                    speakers,
+                    index=0,
+                    key=(
+                        f"speaker_"
+                        f"{scene['id']}_"
+                        f"{pov}"
+                    )
+                )
+
+            with info_col:
+
+                if speaker == pov:
+
+                    st.caption(
+                        f"Dialogo interiore di {pov}: "
+                        "ciò che scrivi viene trattato "
+                        "come un pensiero."
                     )
 
-            st.markdown("---")
+                else:
 
-            with st.form(
-                key=(
-                    f"chat_form_"
-                    f"{scene['id']}_"
-                    f"{pov}"
+                    st.caption(
+                        f"{speaker} parla con {pov}"
+                    )
+
+            user_text = st.text_area(
+                "Messaggio",
+                height=90,
+                placeholder=(
+                    "Scrivi una battuta, "
+                    "una domanda "
+                    "o un pensiero..."
                 ),
-                clear_on_submit=True
-            ):
+                label_visibility="collapsed"
+            )
 
-                speaker_col, info_col = st.columns(
-                    [1.05, 2.95]
-                )
-
-                with speaker_col:
-
-                    speaker = st.selectbox(
-                        "Chi parla",
-                        speakers,
-                        index=0,
-                        key=(
-                            f"speaker_"
-                            f"{scene['id']}_"
-                            f"{pov}"
-                        )
-                    )
-
-                with info_col:
-
-                    if speaker == pov:
-
-                        st.caption(
-                            f"Dialogo interiore "
-                            f"di {pov}"
-                        )
-
-                    else:
-
-                        st.caption(
-                            f"{speaker} "
-                            f"parla con {pov}"
-                        )
-
-                user_text = st.text_area(
-                    "Messaggio",
-                    height=85,
-                    placeholder=(
-                        "Scrivi una battuta, "
-                        "una domanda "
-                        "o un pensiero..."
-                    ),
-                    label_visibility="collapsed"
-                )
-
-                send = st.form_submit_button(
+            send = (
+                st.form_submit_button(
                     "INVIA",
                     use_container_width=True
                 )
+            )
 
-            if (
-                send
-                and
-                user_text.strip()
+        # ====================================================
+        # SEND
+        # ====================================================
+
+        if (
+            send
+            and
+            user_text.strip()
+        ):
+
+            is_inner = (
+                speaker == pov
+            )
+
+            mode = (
+                "inner"
+                if is_inner
+                else "external"
+            )
+
+            messages.append({
+
+                "speaker":
+                    (
+                        pov
+                        if is_inner
+                        else speaker
+                    ),
+
+                "text":
+                    user_text.strip(),
+
+                "kind":
+                    (
+                        "inner"
+                        if is_inner
+                        else "external"
+                    ),
+
+                "role":
+                    "prompt"
+            })
+
+            with st.spinner(
+                f"{pov} sta reagendo..."
             ):
 
-                is_inner = (
-                    speaker == pov
-                )
-
-                mode = (
-                    "inner"
-                    if is_inner
-                    else "external"
-                )
-
-                messages.append({
-
-                    "speaker":
-                        (
-                            pov
-                            if is_inner
-                            else speaker
-                        ),
-
-                    "text":
-                        user_text.strip(),
-
-                    "kind":
-                        (
-                            "inner"
-                            if is_inner
-                            else "external"
-                        ),
-
-                    "role":
-                        "prompt"
-                })
-
-                with st.spinner(
-                    f"{pov} sta reagendo..."
-                ):
-
-                    reply = answer_as_character(
+                reply = (
+                    answer_as_character(
                         pov,
                         scene,
                         mode
                     )
+                )
 
-                messages.append({
+            messages.append({
 
-                    "speaker":
-                        pov,
+                "speaker":
+                    pov,
 
-                    "text":
-                        reply,
+                "text":
+                    reply,
 
-                    "kind":
-                        (
-                            "inner"
-                            if is_inner
-                            else "external"
-                        ),
+                "kind":
+                    (
+                        "inner"
+                        if is_inner
+                        else "external"
+                    ),
 
-                    "role":
-                        "response"
-                })
+                "role":
+                    "response"
+            })
 
-                save_state()
+            save_state()
 
-                st.rerun()
-
-    with portrait_col:
-
-        if (
-            portrait
-            and
-            portrait.exists()
-        ):
-
-            st.image(
-                str(
-                    portrait
-                ),
-                use_container_width=True
-            )
-
-            st.caption(
-                pov
-            )
+            st.rerun()
 
 
 # ============================================================
@@ -2635,7 +2631,9 @@ def render_standard_scene(
     index
 ):
 
-    pov = st.session_state.pov
+    pov = (
+        st.session_state.pov
+    )
 
     st.markdown(
         f"""
@@ -2664,10 +2662,14 @@ Storia di {pov}
         unsafe_allow_html=True
     )
 
-    # FOTO PRINCIPALE COMUNE
+    # ========================================================
+    # 1. FOTO PRINCIPALE DELLA LOCATION
+    # ========================================================
 
-    cover_image = get_scene_cover_image(
-        scene["id"]
+    cover_image = (
+        get_scene_cover_image(
+            scene["id"]
+        )
     )
 
     if (
@@ -2683,27 +2685,35 @@ Storia di {pov}
             use_container_width=True
         )
 
-    # STORY EDITOR + LOCATION-1
+    # ========================================================
+    # 2. CREATORE DELLA SCENA
+    # ========================================================
 
     render_story_editor(
         scene
     )
 
-    # VIDEO COMUNI + SPECIFICI
+    # ========================================================
+    # 3. VIDEO
+    # ========================================================
 
     render_scene_videos(
         scene,
         pov
     )
 
-    # CHAT
+    # ========================================================
+    # 4. CHAT A TUTTA LARGHEZZA
+    # ========================================================
 
     render_chat_panel(
         scene,
         pov
     )
 
-    # FOTO COMUNI + SPECIFICHE
+    # ========================================================
+    # 5. FOTO
+    # ========================================================
 
     render_scene_photos(
         scene,
@@ -2749,8 +2759,10 @@ Storia di {pov}
         unsafe_allow_html=True
     )
 
-    cover_image = get_scene_cover_image(
-        "ritorno"
+    cover_image = (
+        get_scene_cover_image(
+            "ritorno"
+        )
     )
 
     if (
@@ -2775,9 +2787,11 @@ Storia di {pov}
         pov
     )
 
-    memories = get_previous_memories(
-        "ritorno",
-        pov
+    memories = (
+        get_previous_memories(
+            "ritorno",
+            pov
+        )
     )
 
     st.markdown(
@@ -2912,13 +2926,16 @@ dici o scegli.
                 )
 
             save_state()
+
             st.rerun()
 
-    decision = scene[
-        "decision"
-    ].get(
-        pov,
-        ""
+    decision = (
+        scene[
+            "decision"
+        ].get(
+            pov,
+            ""
+        )
     )
 
     if decision:
@@ -2961,8 +2978,10 @@ def page_entrance():
 
     st.write("")
 
-    left, center, right = st.columns(
-        [2, 1.4, 2]
+    left, center, right = (
+        st.columns(
+            [2, 1.4, 2]
+        )
     )
 
     with center:
@@ -2986,9 +3005,13 @@ def page_entrance():
 
 def page_characters():
 
-    noa_col, gap, ada_col = st.columns(
-        [1, .08, 1]
+    noa_col, gap, ada_col = (
+        st.columns(
+            [1, .08, 1]
+        )
     )
+
+    # NOA
 
     with noa_col:
 
@@ -3010,12 +3033,16 @@ NOA
             unsafe_allow_html=True
         )
 
-        for video in character_intro_videos(
-            "Noa"
+        for video in (
+            character_intro_videos(
+                "Noa"
+            )
         ):
 
             st.video(
-                str(video)
+                str(
+                    video
+                )
             )
 
         if st.button(
@@ -3024,11 +3051,19 @@ NOA
             use_container_width=True
         ):
 
-            st.session_state.pov = "Noa"
+            st.session_state.pov = (
+                "Noa"
+            )
+
             st.session_state.scene_index = 0
-            st.session_state.page = "story"
+
+            st.session_state.page = (
+                "story"
+            )
 
             st.rerun()
+
+    # ADA
 
     with ada_col:
 
@@ -3050,12 +3085,16 @@ ADA
             unsafe_allow_html=True
         )
 
-        for video in character_intro_videos(
-            "Ada"
+        for video in (
+            character_intro_videos(
+                "Ada"
+            )
         ):
 
             st.video(
-                str(video)
+                str(
+                    video
+                )
             )
 
         if st.button(
@@ -3064,9 +3103,15 @@ ADA
             use_container_width=True
         ):
 
-            st.session_state.pov = "Ada"
+            st.session_state.pov = (
+                "Ada"
+            )
+
             st.session_state.scene_index = 0
-            st.session_state.page = "story"
+
+            st.session_state.page = (
+                "story"
+            )
 
             st.rerun()
 
@@ -3092,7 +3137,9 @@ def page_story():
 
     scene_map = {
         scene["id"]: scene
-        for scene in state["scenes"]
+        for scene in state[
+            "scenes"
+        ]
     }
 
     index = min(
@@ -3100,15 +3147,25 @@ def page_story():
         len(SCENE_ORDER) - 1
     )
 
-    st.session_state.scene_index = index
-
-    scene_id = SCENE_ORDER[
+    st.session_state.scene_index = (
         index
-    ]
+    )
 
-    scene = scene_map[
-        scene_id
-    ]
+    scene_id = (
+        SCENE_ORDER[
+            index
+        ]
+    )
+
+    scene = (
+        scene_map[
+            scene_id
+        ]
+    )
+
+    # ========================================================
+    # SIDEBAR
+    # ========================================================
 
     st.sidebar.markdown(
         f"## {pov}"
@@ -3164,8 +3221,10 @@ def page_story():
         "DATI AGENTE"
     ):
 
-        sources = load_character_sources(
-            pov
+        sources = (
+            load_character_sources(
+                pov
+            )
         )
 
         if not sources:
@@ -3210,6 +3269,7 @@ def page_story():
         )
 
         st.session_state.pov = None
+
         st.session_state.scene_index = 0
 
         st.rerun()
@@ -3224,9 +3284,14 @@ def page_story():
         )
 
         st.session_state.pov = None
+
         st.session_state.scene_index = 0
 
         st.rerun()
+
+    # ========================================================
+    # SCENA
+    # ========================================================
 
     if scene_id == "ritorno":
 
@@ -3241,6 +3306,10 @@ def page_story():
             scene,
             index
         )
+
+    # ========================================================
+    # NAVIGAZIONE
+    # ========================================================
 
     st.markdown("---")
 
@@ -3283,20 +3352,31 @@ def page_story():
 # ROUTER
 # ============================================================
 
-if st.session_state.page == "entrance":
+if (
+    st.session_state.page
+    == "entrance"
+):
 
     page_entrance()
 
-elif st.session_state.page == "characters":
+elif (
+    st.session_state.page
+    == "characters"
+):
 
     page_characters()
 
-elif st.session_state.page == "story":
+elif (
+    st.session_state.page
+    == "story"
+):
 
     page_story()
 
 else:
 
-    st.session_state.page = "entrance"
+    st.session_state.page = (
+        "entrance"
+    )
 
     st.rerun()
