@@ -253,6 +253,7 @@ div[data-testid="stExpander"] {
 
 SCENE_ORDER = [
     "hall",
+    "stanza",
     "funerale",
     "matrimonio",
     "reparto_nascite",
@@ -261,6 +262,7 @@ SCENE_ORDER = [
 
 SCENE_TITLES = {
     "hall": "La Hall",
+    "stanza": "La stanza",
     "funerale": "Il Funerale",
     "matrimonio": "Il Matrimonio",
     "reparto_nascite": "Il reparto nascite",
@@ -269,6 +271,7 @@ SCENE_TITLES = {
 
 SCENE_ALIASES = {
     "hall": ["hall"],
+    "stanza": ["stanza", "la stanza", "camera"],
     "funerale": ["funerale"],
     "matrimonio": ["matrimonio"],
     "reparto_nascite": [
@@ -546,6 +549,7 @@ def empty_scene(scene_id, title):
         "story_feedback": "",
         "approved_context": "",
         "advisor_messages": [],
+        "shared_dialogue": [],
         "messages": {
             "Noa": [],
             "Ada": []
@@ -555,6 +559,17 @@ def empty_scene(scene_id, title):
             "Ada": ""
         }
     }
+
+    if scene_id == "stanza":
+        scene["author_context"] = (
+            "Ada accompagna Noa nella sua stanza al Turing Hotel. "
+            "Nel percorso di Ada, la scena presenta soltanto il dialogo "
+            "tra Ada e Noa. Nel percorso di Noa, dopo l'incontro, "
+            "Noa rimane sola davanti allo specchio e riflette su sé stessa "
+            "e su quello che ha appena vissuto. "
+            "Non anticipare fatti o rivelazioni della scena successiva."
+        )
+        scene["approved_context"] = scene["author_context"]
 
     if scene_id == "ritorno":
         scene["decision"] = {
@@ -615,6 +630,7 @@ e osservatrice.
 
     "scenes": [
         empty_scene("hall", "La Hall"),
+        empty_scene("stanza", "La stanza"),
         empty_scene("funerale", "Il Funerale"),
         empty_scene("matrimonio", "Il Matrimonio"),
         empty_scene("reparto_nascite", "Il reparto nascite"),
@@ -711,6 +727,10 @@ def get_context_file():
         ):
             return path
 
+    # Supporta anche il documento canonico accanto a app.py.
+    root_file = BASE_DIR / "TURING_HOTEL_CONTESTO_AGENTE.md"
+    if root_file.is_file():
+        return root_file
     return None
 
 
@@ -954,6 +974,10 @@ def migrate_state(old_state):
 
         if not old_scene:
             continue
+
+        new_scene["shared_dialogue"] = safe_list(
+            old_scene.get("shared_dialogue", [])
+        )
 
         new_scene["advisor_messages"] = safe_list(
             old_scene.get(
@@ -2070,6 +2094,12 @@ un interlocutore esterno.
 Prosegui la riflessione
 dall'interno.
 
+Ripensa a ciò che hai appena visto e ascoltato,
+alle contraddizioni della tua memoria e alle tue reazioni.
+Distingui sempre fatti, impressioni e supposizioni.
+Non rappresentare il pensiero come un dialogo con
+un interlocutore esterno.
+
 Puoi esitare,
 contraddirti,
 ricordare,
@@ -2142,6 +2172,9 @@ def answer_as_character(
                 scene[
                     "messages"
                 ][character],
+
+            "DIALOGO_AUTONOMO_CONDIVISO":
+                scene.get("shared_dialogue", []),
 
             "MODALITA":
                 interaction_mode
@@ -2472,6 +2505,62 @@ Immagini della scena
 
 
 # ============================================================
+# GO ALONE — DUE SCAMBI AUTONOMI, MEMORIA CONDIVISA
+# ============================================================
+
+def _is_openai_error(value):
+    return (not value or value.startswith("Errore OpenAI:")
+            or value.startswith("OPENAI_API_KEY non configurata."))
+
+
+def run_go_alone(scene, starting_character="Ada"):
+    """Esegue due scambi Ada/Noa (quattro battute), in ordine.
+    Registra ogni battuta solo se è stata generata con successo.
+    Le due timeline POV ricevono lo stesso dialogo condiviso.
+    """
+    order = [starting_character,
+             "Noa" if starting_character == "Ada" else "Ada"] * 2
+    for speaker in order:
+        other = "Noa" if speaker == "Ada" else "Ada"
+        history = scene["messages"][speaker]
+        recent = scene.get("shared_dialogue", [])[-16:]
+        instructions = character_prompt(speaker, scene, "external") + f"""
+
+PARTECIPI ALLA MODALITÀ GO ALONE.
+Tu sei {speaker} e stai parlando con {other}.
+Il dialogo evolve secondo il tuo profilo, le tue memorie,
+quanto detto finora e gli eventi confermati.
+Scrivi SOLO la tua prossima battuta pronunciata ad alta voce.
+Non interpretare {other}; non inventare risposte al suo posto.
+Non anticipare la trama o creare nuovi eventi irreversibili.
+Non elencare istruzioni e non produrre JSON.
+"""
+        raw = query_openai(instructions, {
+            "SCENA": scene["title"],
+            "CONTESTO_APPROVATO": scene.get("approved_context", ""),
+            "CONTESTO_CANONICO": load_turing_context(),
+            "DATI_PERSONAGGIO": load_character_sources(speaker),
+            "RICORDI_PRECEDENTI": get_previous_memories(scene["id"], speaker),
+            "MEMORIA_ATTUALE": state["agents"][speaker].get("memory", ""),
+            "CRONOLOGIA_PERSONALE": history[-24:],
+            "DIALOGO_COMUNE_RECENTE": recent,
+            "INTERLOCUTORE": other,
+        })
+        reply = clean_character_response(raw)
+        if _is_openai_error(reply):
+            save_state()
+            return False, reply
+        turn = {"speaker": speaker, "text": reply,
+                "kind": "external", "role": "response", "origin": "go_alone"}
+        scene.setdefault("shared_dialogue", []).append(turn)
+        for perspective in ("Ada", "Noa"):
+            scene["messages"][perspective].append(copy.deepcopy(turn))
+        # Salvataggio dopo ogni singola risposta, anche se una chiamata fallisce.
+        save_state()
+    return True, ""
+
+
+# ============================================================
 # CHAT
 # ============================================================
 
@@ -2501,6 +2590,9 @@ def render_chat_panel(
         "Riccardo",
         "Altro"
     ]
+
+    if scene["id"] == "stanza":
+        speakers = ["Noa"] if pov == "Noa" else ["Noa"]
 
     st.markdown("---")
 
@@ -2545,6 +2637,14 @@ Dialoghi, azioni e riflessioni
                     dict
                 ):
                     continue
+
+                # Nella stanza Ada assiste al dialogo;
+                # Noa vive il monologo davanti allo specchio.
+                if scene["id"] == "stanza":
+                    if pov == "Ada" and message.get("kind") == "inner":
+                        continue
+                    if pov == "Noa" and message.get("kind") != "inner":
+                        continue
 
                 speaker = message.get(
                     "speaker",
@@ -2614,6 +2714,25 @@ Dialoghi, azioni e riflessioni
 """,
                         unsafe_allow_html=True
                     )
+
+        # Una pressione = due scambi completi, in ogni scena e POV.
+        # Nella stanza gli scambi restano visibili dal POV Ada;
+        # dal POV Noa alimentano il suo contesto interiore.
+        if st.button(
+            "GO ALONE · 2 SCAMBI",
+            key=f"go_alone_{scene['id']}_{pov}",
+            use_container_width=True,
+            disabled=not bool(client)
+        ):
+            with st.spinner("Ada e Noa stanno dialogando autonomamente..."):
+                success, error = run_go_alone(scene, "Ada")
+            if not success:
+                st.error(error)
+            else:
+                st.rerun()
+        if scene["id"] == "stanza" and pov == "Noa":
+            st.caption("Gli scambi autonomi si leggono nella prospettiva di Ada. "
+                       "Qui Noa riflette su ciò che è accaduto.")
 
         memory_col, delete_col = st.columns(2)
 
@@ -2794,6 +2913,11 @@ Dialoghi, azioni e riflessioni
                     scene,
                     mode
                 )
+
+            if _is_openai_error(reply):
+                messages.pop()  # non salvare prompt rimasti senza risposta
+                st.error(reply)
+                return
 
             messages.append({
                 "speaker":
