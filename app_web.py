@@ -18,9 +18,8 @@ from docx import Document
 
 
 # ============================================================
-# TURING HOTEL
-# OFFICINA DEL ROMANZO — NOA / ADA
-# VERSIONE CON DIAGNOSTICA MEDIA
+# TURING HOTEL — OFFICINA DEL ROMANZO
+# 29 SCENE, DUE PERCORSI, ARCHIVIO PRIVATO
 # ============================================================
 
 st.set_page_config(
@@ -35,66 +34,80 @@ ASSETS = ROOT / "assets"
 CHARACTERS_DIR = ROOT / "characters"
 LOCAL_ARCHIVE = ROOT / "data_web" / "romanzo_web.json"
 
+CHARACTERS = ("Noa", "Ada")
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp"}
 VIDEO_EXT = {".mp4", ".mov", ".webm", ".m4v"}
 
-CHARACTERS = ("Noa", "Ada")
 
-SCENE_ORDER = [
-    "inizio",
-    "hall",
-    "stanza",
-    "funerale",
-    "matrimonio",
-    "reparto_nascite",
-    "ritorno"
+# ============================================================
+# ORDINE DEFINITIVO DELLE SCENE
+# ============================================================
+
+SCENE_DEFINITIONS = [
+    ("inizio", "L'inizio"),
+    ("hall", "La Hall"),
+    ("stanza", "La stanza"),
+    ("la_passeggiata", "La passeggiata"),
+    ("funerale", "Il funerale"),
+    ("matrimonio", "Il matrimonio"),
+    ("la_colazione", "La colazione"),
+    ("il_mercato", "Il mercato"),
+    ("reparto_nascite", "Il reparto nascite"),
+    ("ritorno", "Il ritorno"),
+    ("il_professore", "Il professore"),
+    ("adam", "ADAM"),
+    ("la_cena", "La cena"),
+    ("la_canna", "La canna"),
+    ("riccardo_e_vittoria", "Riccardo e Vittoria"),
+    ("adam_e_vittoria", "Adam e Vittoria"),
+    ("la_fuga", "La fuga"),
+    ("il_bacio", "Il bacio"),
+    ("la_sassata", "La sassata"),
+    ("il_giorno_libero", "Il giorno libero"),
+    ("i_deltaplani", "I deltaplani"),
+    ("il_piccolo_principe", "Il piccolo principe"),
+    ("il_volo", "Il volo"),
+    ("la_suite", "La suite"),
+    ("la_notte", "La notte"),
+    ("il_rancore_di_ada", "Il rancore di Ada"),
+    ("il_test", "Il test"),
+    ("luigi_se_ne_va", "Luigi se ne va"),
+    ("il_bagno", "Il bagno")
 ]
 
-SCENE_TITLES = {
-    "inizio": "L'inizio",
-    "hall": "La Hall",
-    "stanza": "La stanza",
-    "funerale": "Il Funerale",
-    "matrimonio": "Il Matrimonio",
-    "reparto_nascite": "Il reparto nascite",
-    "ritorno": "Il ritorno"
-}
+SCENE_ORDER = [item[0] for item in SCENE_DEFINITIONS]
+SCENE_TITLES = dict(SCENE_DEFINITIONS)
 
-SCENE_ALIASES = {
-    "inizio": ["inizio", "prologo"],
-    "hall": ["hall"],
-    "stanza": ["stanza", "camera"],
-    "funerale": ["funerale"],
-    "matrimonio": ["matrimonio"],
+LEGACY_ALIASES = {
+    "inizio": ["inizio", "prologo", "l'inizio"],
+    "hall": ["hall", "la hall", "reception"],
+    "stanza": ["stanza", "camera", "la stanza"],
+    "funerale": ["funerale", "il funerale"],
+    "matrimonio": ["matrimonio", "il matrimonio"],
     "reparto_nascite": [
-        "repartonascite",
-        "reparto_nascite",
-        "reparto-nascite",
-        "nascite"
+        "repartonascite", "reparto-nascite",
+        "nascite", "reparto_nascite"
     ],
-    "ritorno": ["ritorno", "finale"]
+    "ritorno": ["ritorno", "il ritorno"]
 }
 
 INTRO_CONTEXTS = {
     "Noa": (
-        "Noa cammina lungo il viale che conduce "
-        "al Turing Hotel. È sola con i propri pensieri. "
-        "Il percorso è un monologo interiore, "
-        "alimentato dalle sue osservazioni, "
-        "dalla memoria e dalla sua natura artificiale. "
-        "La scena termina quando incontra Ada. "
+        "Noa percorre a piedi il viale che conduce "
+        "al Turing Hotel. La scena è un monologo "
+        "interiore che accompagna il cammino. "
+        "I pensieri dipendono dalla sua identità, "
+        "dalle sue conoscenze e dalle interazioni. "
+        "La scena termina con l'incontro con Ada. "
         "Non raccontare il dialogo successivo."
     ),
     "Ada": (
-        "Ada si trova nello studio di suo padre, "
-        "il professor Elia, all'interno del Turing Hotel. "
-        "La scena si sviluppa attraverso il dialogo "
+        "Ada si trova nello studio del professor Elia, "
+        "suo padre, all'interno del Turing Hotel. "
+        "La scena si sviluppa in un dialogo "
         "tra Ada e il Professore. "
-        "Ada reagisce secondo la propria identità "
-        "e la propria memoria. "
         "La scena termina quando Noa arriva "
-        "alla reception dell'albergo. "
-        "Non raccontare eventi successivi."
+        "alla reception. Non proseguire oltre."
     )
 }
 
@@ -107,20 +120,19 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
+def normalized(text):
+    return re.sub(
+        r"[^a-z0-9]+", "",
+        str(text).casefold()
+    )
+
+
 def safe_dict(value):
     return value if isinstance(value, dict) else {}
 
 
 def safe_list(value):
     return value if isinstance(value, list) else []
-
-
-def normalize(value):
-    return re.sub(
-        r"[\s._\-]+",
-        "",
-        str(value).casefold()
-    )
 
 
 def setting(name, default=""):
@@ -130,35 +142,60 @@ def setting(name, default=""):
             return str(value)
     except Exception:
         pass
-
     return os.getenv(name, default)
 
 
-def find_file(name):
-    if not ASSETS.exists():
+def find_file(filename):
+    if not ASSETS.is_dir():
         return None
 
-    wanted = name.casefold()
-
     for path in ASSETS.iterdir():
-        if path.is_file() and path.name.casefold() == wanted:
+        if (
+            path.is_file()
+            and path.name.casefold() == filename.casefold()
+        ):
             return path
 
     return None
 
 
-def numbered_suffix(value):
-    match = re.search(r"(\d+)$", value)
-    return int(match.group(1)) if match else 0
-
-
-def ai_failed(value):
+def ai_failed(text):
     return (
-        not isinstance(value, str)
-        or not value.strip()
-        or value.startswith("Errore OpenAI:")
-        or value.startswith("OPENAI_API_KEY")
+        not isinstance(text, str)
+        or not text.strip()
+        or text.startswith("Errore OpenAI:")
+        or text.startswith("OPENAI_API_KEY")
     )
+
+
+def json_from_ai(text):
+    text = re.sub(
+        r"^```(?:json)?\s*",
+        "",
+        str(text).strip(),
+        flags=re.I
+    )
+    text = re.sub(r"\s*```$", "", text)
+
+    try:
+        return json.loads(text)
+    except (TypeError, ValueError):
+        return None
+
+
+def fill_defaults(target, template):
+    if not isinstance(target, dict):
+        target = {}
+
+    for key, value in template.items():
+        if key not in target:
+            target[key] = copy.deepcopy(value)
+        elif isinstance(value, dict):
+            target[key] = fill_defaults(
+                target[key], value
+            )
+
+    return target
 
 
 # ============================================================
@@ -166,7 +203,7 @@ def ai_failed(value):
 # ============================================================
 
 OPENAI_KEY = setting("OPENAI_API_KEY")
-OPENAI_MODEL = setting("OPENAI_MODEL", "gpt-5.6")
+OPENAI_MODEL = setting("OPENAI_MODEL", "gpt-4.1-mini")
 
 GH_TOKEN = setting("GITHUB_TOKEN")
 GH_OWNER = setting("GITHUB_OWNER")
@@ -182,13 +219,30 @@ client = (
 )
 
 
+def ask_ai(instructions, payload):
+    if not client:
+        return "OPENAI_API_KEY non configurata."
+
+    try:
+        response = client.responses.create(
+            model=OPENAI_MODEL,
+            instructions=instructions,
+            input=json.dumps(
+                payload,
+                ensure_ascii=False
+            )
+        )
+        return response.output_text.strip()
+    except Exception as exc:
+        return f"Errore OpenAI: {exc}"
+
+
 # ============================================================
-# INTERFACCIA — CONTRASTO
+# CONTRASTO INTERFACCIA
 # ============================================================
 
 st.markdown("""
 <style>
-
 .stApp {
     background: #090c0e !important;
     color: #ffffff !important;
@@ -204,12 +258,8 @@ header[data-testid="stHeader"] {
     border-right: 1px solid #46525b;
 }
 
-.stApp h1,
-.stApp h2,
-.stApp h3,
-.stApp h4,
-.stApp h5,
-.stApp h6 {
+.stApp h1, .stApp h2, .stApp h3,
+.stApp h4, .stApp h5, .stApp h6 {
     color: #ffffff !important;
 }
 
@@ -219,9 +269,8 @@ header[data-testid="stHeader"] {
     color: #ffffff !important;
 }
 
-.stApp [data-testid="stCaptionContainer"],
 .stApp [data-testid="stCaptionContainer"] p {
-    color: #d9dfe3 !important;
+    color: #dde2e5 !important;
 }
 
 .stApp .stButton > button,
@@ -229,9 +278,9 @@ header[data-testid="stHeader"] {
 .stApp .stDownloadButton > button {
     background: #1b2227 !important;
     color: #ffffff !important;
-    border: 1px solid #8c979f !important;
+    border: 1px solid #88949c !important;
     border-radius: 5px !important;
-    min-height: 43px;
+    min-height: 42px;
     font-weight: 600 !important;
 }
 
@@ -245,13 +294,12 @@ header[data-testid="stHeader"] {
 .stApp .stFormSubmitButton > button:hover,
 .stApp .stDownloadButton > button:hover {
     background: #354149 !important;
-    color: #ffffff !important;
     border-color: #c1a478 !important;
 }
 
 .stApp input:not([type="checkbox"]):not([type="radio"]),
 .stApp textarea {
-    background-color: #ffffff !important;
+    background: #ffffff !important;
     color: #111111 !important;
     -webkit-text-fill-color: #111111 !important;
     caret-color: #111111 !important;
@@ -259,8 +307,8 @@ header[data-testid="stHeader"] {
 
 .stApp input::placeholder,
 .stApp textarea::placeholder {
-    color: #606060 !important;
-    -webkit-text-fill-color: #606060 !important;
+    color: #666666 !important;
+    -webkit-text-fill-color: #666666 !important;
 }
 
 .stApp [data-baseweb="input"],
@@ -269,15 +317,13 @@ header[data-testid="stHeader"] {
 }
 
 .stApp [data-baseweb="select"] > div {
-    background-color: #ffffff !important;
+    background: #ffffff !important;
     color: #111111 !important;
 }
 
 .stApp [data-baseweb="select"] span,
-.stApp [data-baseweb="select"] input,
-.stApp [data-baseweb="select"] svg {
+.stApp [data-baseweb="select"] input {
     color: #111111 !important;
-    fill: #111111 !important;
 }
 
 [data-baseweb="popover"] [role="listbox"],
@@ -311,7 +357,6 @@ header[data-testid="stHeader"] {
 .stApp [data-testid="stExpander"] {
     background: #151b20 !important;
     border: 1px solid #46525b !important;
-    border-radius: 6px;
 }
 
 .stApp [data-testid="stExpander"] summary,
@@ -327,12 +372,9 @@ header[data-testid="stHeader"] {
     color: #ffffff !important;
 }
 
-/* Non imponiamo colori sugli alert:
-   ogni messaggio mantiene il proprio contrasto. */
-
 .hotel-title {
     font-family: Georgia, serif;
-    font-size: 3rem;
+    font-size: 2.8rem;
     line-height: 1.15;
     color: #ffffff;
     margin-bottom: 8px;
@@ -340,7 +382,7 @@ header[data-testid="stHeader"] {
 
 .hotel-subtitle {
     color: #d3b98d;
-    letter-spacing: .15em;
+    letter-spacing: .12em;
     text-transform: uppercase;
     font-size: .85rem;
     margin-bottom: 20px;
@@ -375,62 +417,13 @@ header[data-testid="stHeader"] {
     white-space: pre-wrap;
 }
 
-.media-heading {
-    font-family: Georgia, serif;
-    color: #ffffff;
-    font-size: 1.25rem;
-    margin: 18px 0 8px;
-}
-
 .stApp button:focus-visible,
 .stApp input:focus-visible,
 .stApp textarea:focus-visible {
     outline: 2px solid #c1a478 !important;
 }
-
 </style>
 """, unsafe_allow_html=True)
-
-
-# ============================================================
-# OPENAI
-# ============================================================
-
-def ask_ai(instructions, payload):
-    if not client:
-        return "OPENAI_API_KEY non configurata."
-
-    try:
-        response = client.responses.create(
-            model=OPENAI_MODEL,
-            instructions=instructions,
-            input=json.dumps(
-                payload,
-                ensure_ascii=False
-            )
-        )
-        return response.output_text.strip()
-
-    except Exception as exc:
-        return f"Errore OpenAI: {exc}"
-
-
-def parse_json_answer(text):
-    cleaned = str(text).strip()
-
-    cleaned = re.sub(
-        r"^```(?:json)?\s*",
-        "",
-        cleaned,
-        flags=re.IGNORECASE
-    )
-
-    cleaned = re.sub(r"\s*```$", "", cleaned)
-
-    try:
-        return json.loads(cleaned)
-    except (ValueError, TypeError):
-        return None
 
 
 # ============================================================
@@ -483,21 +476,20 @@ def github_request(method, path, payload=None):
         )
     except requests.RequestException as exc:
         raise ArchiveError(
-            f"Connessione GitHub fallita: {exc}"
+            f"Errore di connessione GitHub: {exc}"
         ) from exc
 
     if response.status_code == 404:
         if method == "GET":
             return None
-
         raise ArchiveError(
             "Repository, ramo o percorso non trovato."
         )
 
     if response.status_code in (409, 422):
         raise ArchiveError(
-            "Conflitto di salvataggio. "
-            "Ricarica l'archivio prima di riprovare."
+            "Conflitto di versione: ricarica "
+            "l'archivio prima di riprovare."
         )
 
     if not response.ok:
@@ -519,12 +511,10 @@ def read_remote():
         content = base64.b64decode(
             response["content"]
         ).decode("utf-8")
-
         return content, response["sha"]
-
     except (KeyError, ValueError) as exc:
         raise ArchiveError(
-            "Impossibile leggere l'archivio."
+            "Impossibile leggere il JSON remoto."
         ) from exc
 
 
@@ -533,8 +523,8 @@ def write_remote(content, expected_sha):
 
     if current_sha != expected_sha:
         raise ArchiveError(
-            "L'archivio è stato modificato "
-            "in un'altra sessione. Ricarica."
+            "L'archivio è stato modificato altrove. "
+            "Ricaricalo prima di salvare."
         )
 
     payload = {
@@ -549,9 +539,7 @@ def write_remote(content, expected_sha):
         payload["sha"] = current_sha
 
     response = github_request(
-        "PUT",
-        REMOTE_FILE,
-        payload
+        "PUT", REMOTE_FILE, payload
     )
 
     sha = safe_dict(
@@ -567,7 +555,7 @@ def write_remote(content, expected_sha):
 
 
 # ============================================================
-# DATI DEL ROMANZO
+# DATI NARRATIVI
 # ============================================================
 
 def empty_narrative():
@@ -600,14 +588,8 @@ def empty_scene(sid):
         "approved_context": "",
         "advisor_messages": [],
         "shared_dialogue": [],
-        "messages": {
-            "Noa": [],
-            "Ada": []
-        },
-        "diary": {
-            "Noa": "",
-            "Ada": ""
-        },
+        "messages": {"Noa": [], "Ada": []},
+        "diary": {"Noa": "", "Ada": ""},
         "narrative": {
             "Noa": empty_narrative(),
             "Ada": empty_narrative()
@@ -618,14 +600,12 @@ def empty_scene(sid):
         scene["intro_contexts"] = copy.deepcopy(
             INTRO_CONTEXTS
         )
-        scene["author_context"] = (
-            "Due prologhi indipendenti."
-        )
 
     if sid == "stanza":
         scene["author_context"] = (
             "Ada accompagna Noa nella stanza. "
-            "Noa riflette anche sulla propria identità."
+            "Il racconto segue il punto di vista "
+            "del personaggio selezionato."
         )
         scene["approved_context"] = (
             scene["author_context"]
@@ -633,8 +613,7 @@ def empty_scene(sid):
 
     if sid == "ritorno":
         scene["decision"] = {
-            "Noa": "",
-            "Ada": ""
+            "Noa": "", "Ada": ""
         }
 
     return scene
@@ -649,8 +628,9 @@ def default_state():
         "agents": {
             "Noa": {
                 "profile": (
-                    "Noa è un agente artificiale relazionale, "
-                    "consapevole della propria natura."
+                    "Noa è un agente artificiale "
+                    "relazionale, consapevole "
+                    "della propria natura."
                 ),
                 "memory": ""
             },
@@ -669,137 +649,95 @@ def default_state():
     }
 
 
-def find_old_scene(scenes, sid):
-    aliases = {
-        normalize(item)
-        for item in SCENE_ALIASES[sid]
+def aliases_for(sid):
+    return {
+        normalized(sid),
+        normalized(SCENE_TITLES[sid]),
+        *(
+            normalized(x)
+            for x in LEGACY_ALIASES.get(sid, [])
+        )
     }
-    aliases.add(normalize(sid))
-
-    for item in safe_list(scenes):
-        if not isinstance(item, dict):
-            continue
-
-        if normalize(item.get("id", "")) in aliases:
-            return item
-
-        if normalize(item.get("title", "")) in aliases:
-            return item
-
-    return None
 
 
 def migrate_state(old):
-    result = default_state()
+    """
+    Conserva le scene precedenti e inserisce
+    quelle nuove nell'ordine narrativo richiesto.
+    """
     old = safe_dict(old)
+    result = copy.deepcopy(old)
 
-    if isinstance(old.get("world"), str):
-        result["world"] = old["world"]
+    template = default_state()
+    result = fill_defaults(result, template)
 
-    old_agents = safe_dict(old.get("agents"))
+    original_scenes = safe_list(old.get("scenes"))
+    updated = []
 
-    for pov in CHARACTERS:
-        source = safe_dict(old_agents.get(pov))
+    for sid in SCENE_ORDER:
+        previous = None
+        aliases = aliases_for(sid)
 
-        for key in ("profile", "memory"):
-            if isinstance(source.get(key), str):
-                result["agents"][pov][key] = source[key]
+        for candidate in original_scenes:
+            if not isinstance(candidate, dict):
+                continue
 
-    for scene in result["scenes"]:
-        previous = find_old_scene(
-            old.get("scenes"),
-            scene["id"]
-        )
+            if (
+                normalized(candidate.get("id", "")) in aliases
+                or normalized(candidate.get("title", "")) in aliases
+            ):
+                previous = candidate
+                break
 
-        if previous is None:
-            continue
+        fresh = empty_scene(sid)
 
-        for field in (
-            "author_context",
-            "story_draft",
-            "story_feedback",
-            "approved_context"
-        ):
-            if isinstance(previous.get(field), str):
-                scene[field] = previous[field]
-
-        for field in (
-            "advisor_messages",
-            "shared_dialogue"
-        ):
-            scene[field] = copy.deepcopy(
-                safe_list(previous.get(field))
+        if previous is not None:
+            scene = fill_defaults(
+                copy.deepcopy(previous), fresh
             )
+        else:
+            scene = fresh
 
-        if scene["id"] == "inizio":
-            contexts = safe_dict(
-                previous.get("intro_contexts")
+        scene["id"] = sid
+        scene["title"] = SCENE_TITLES[sid]
+
+        if sid == "inizio":
+            scene["intro_contexts"] = fill_defaults(
+                safe_dict(scene.get("intro_contexts")),
+                INTRO_CONTEXTS
             )
-
-            for pov in CHARACTERS:
-                if isinstance(contexts.get(pov), str):
-                    scene["intro_contexts"][pov] = (
-                        contexts[pov]
-                    )
-
-        old_messages = safe_dict(
-            previous.get("messages")
-        )
-        old_diary = safe_dict(
-            previous.get("diary")
-        )
-        old_narratives = safe_dict(
-            previous.get("narrative")
-        )
 
         for pov in CHARACTERS:
-            scene["messages"][pov] = copy.deepcopy(
-                safe_list(old_messages.get(pov))
+            record = safe_dict(
+                safe_dict(
+                    scene.get("narrative")
+                ).get(pov)
             )
-
-            scene["diary"][pov] = str(
-                old_diary.get(pov, "")
+            record = fill_defaults(
+                record, empty_narrative()
             )
+            scene["narrative"][pov] = record
 
-            original = safe_dict(
-                old_narratives.get(pov)
-            )
-
-            for key, value in original.items():
-                scene["narrative"][pov][key] = (
-                    copy.deepcopy(value)
+            if (
+                not record.get("approved")
+                and not record.get("draft")
+                and safe_dict(
+                    scene.get("diary")
+                ).get(pov)
+            ):
+                record["draft"] = (
+                    scene["diary"][pov]
                 )
-
-            record = scene["narrative"][pov]
-
-            record["visual"] = {
-                **empty_narrative()["visual"],
-                **safe_dict(record.get("visual"))
-            }
-
-            record["history"] = safe_list(
-                record.get("history")
-            )
-
-            if not original and scene["diary"][pov]:
-                record["draft"] = scene["diary"][pov]
                 record["status"] = "bozza_legacy"
 
-        if scene["id"] == "ritorno":
-            old_decisions = safe_dict(
-                previous.get("decision")
-            )
+        updated.append(scene)
 
-            for pov in CHARACTERS:
-                scene["decision"][pov] = str(
-                    old_decisions.get(pov, "")
-                )
-
+    result["scenes"] = updated
     return result
 
 
 # ============================================================
-# CARICAMENTO E SALVATAGGIO
+# CARICAMENTO / SALVATAGGIO
 # ============================================================
 
 def load_archive():
@@ -809,13 +747,13 @@ def load_archive():
         return None, None
 
     try:
-        old = json.loads(raw)
+        parsed = json.loads(raw)
     except ValueError as exc:
         raise ArchiveError(
-            "Il JSON remoto non è valido."
+            "Il file remoto non contiene JSON valido."
         ) from exc
 
-    return migrate_state(old), sha
+    return migrate_state(parsed), sha
 
 
 def initialize_session():
@@ -824,7 +762,7 @@ def initialize_session():
 
     if not github_ready():
         st.error(
-            "Configura prima i Secrets GitHub."
+            "Configura i Secrets GitHub."
         )
         st.stop()
 
@@ -835,14 +773,14 @@ def initialize_session():
         st.stop()
 
     st.session_state.state = (
-        loaded if loaded is not None else default_state()
+        loaded
+        if loaded is not None
+        else default_state()
     )
-
     st.session_state.archive_sha = sha
     st.session_state.archive_ready = (
         loaded is not None
     )
-
     st.session_state.page = "entrance"
     st.session_state.pov = None
     st.session_state.scene_index = 0
@@ -859,9 +797,7 @@ def save_state():
         )
 
     payload = json.dumps(
-        state,
-        ensure_ascii=False,
-        indent=2
+        state, ensure_ascii=False, indent=2
     )
 
     st.session_state.archive_sha = write_remote(
@@ -877,11 +813,9 @@ def commit_change(change):
         change()
         save_state()
         return True
-
     except Exception as exc:
         state.clear()
         state.update(previous)
-
         st.error(
             f"Salvataggio non riuscito: {exc}"
         )
@@ -893,9 +827,7 @@ def refresh_archive():
         loaded, sha = load_archive()
 
         if loaded is None:
-            st.error(
-                "Archivio remoto non trovato."
-            )
+            st.error("Archivio remoto mancante.")
             return False
 
         state.clear()
@@ -944,13 +876,14 @@ def initialize_archive_if_needed():
             else:
                 selected = default_state()
 
-            payload = json.dumps(
-                selected,
-                ensure_ascii=False,
-                indent=2
+            sha = write_remote(
+                json.dumps(
+                    selected,
+                    ensure_ascii=False,
+                    indent=2
+                ),
+                None
             )
-
-            sha = write_remote(payload, None)
 
             st.session_state.state = selected
             st.session_state.archive_sha = sha
@@ -969,315 +902,357 @@ initialize_archive_if_needed()
 
 
 # ============================================================
-# MEDIA DELLE SCENE
+# MEDIA: NOMESCENA.NOMEPERSONA.NUMERO
 # ============================================================
 
-def media_files(scene_id, pov):
-    result = {
-        "cover": [],
-        "images": [],
-        "videos": []
+def media_prefix(scene_id, pov):
+    return (
+        f"{scene_id}.{pov.lower()}"
+    )
+
+
+def expected_media_names(scene_id, pov):
+    prefix = media_prefix(scene_id, pov)
+
+    return {
+        "cover": f"{prefix}.jpg",
+        "images": [
+            f"{prefix}.{i}.jpg"
+            for i in range(1, 4)
+        ],
+        "videos": [
+            f"{prefix}.{i}.mp4"
+            for i in range(1, 3)
+        ]
     }
 
-    if not ASSETS.exists():
-        return result
+
+def parse_scene_media(path, scene_id, pov):
+    """
+    Formato preferito:
+    la_passeggiata.noa.1.jpg
+    il_professore.ada.2.mp4
+
+    Compatibilità con:
+    inizio.ada1.jpg
+    inizio.ada.1.jpg
+    hall.ada1.mp4
+    hall-2.jpg
+    """
+    if path.suffix.casefold() not in (
+        IMAGE_EXT | VIDEO_EXT
+    ):
+        return None
+
+    filename = normalized(path.stem)
+    person = normalized(pov)
 
     aliases = sorted(
-        {
-            normalize(value)
-            for value in SCENE_ALIASES[scene_id]
-        },
+        aliases_for(scene_id),
         key=len,
         reverse=True
     )
 
-    person = normalize(pov)
+    for alias in aliases:
+        if not filename.startswith(alias):
+            continue
+
+        tail = filename[len(alias):]
+
+        # Copertina specifica
+        if tail == person:
+            if path.suffix.casefold() in IMAGE_EXT:
+                return ("cover", 0)
+            return None
+
+        # Copertina generica per scene storiche,
+        # ma NON per i prologhi.
+        if tail == "" and scene_id != "inizio":
+            if path.suffix.casefold() in IMAGE_EXT:
+                return ("generic_cover", 0)
+            return None
+
+        if tail.startswith(person):
+            number = tail[len(person):]
+
+            if number.isdigit():
+                category = (
+                    "videos"
+                    if path.suffix.casefold() in VIDEO_EXT
+                    else "images"
+                )
+                return category, int(number)
+
+        # File generici storici, non dei prologhi.
+        if scene_id != "inizio" and tail.isdigit():
+            category = (
+                "videos"
+                if path.suffix.casefold() in VIDEO_EXT
+                else "images"
+            )
+            return category, int(tail)
+
+    return None
+
+
+def media_files(scene_id, pov):
+    found = {
+        "cover": [],
+        "generic_cover": [],
+        "images": [],
+        "videos": []
+    }
+
+    if not ASSETS.is_dir():
+        return found
 
     for path in ASSETS.iterdir():
         if not path.is_file():
             continue
 
-        ext = path.suffix.casefold()
-
-        if ext not in IMAGE_EXT | VIDEO_EXT:
-            continue
-
-        compact = normalize(path.stem)
-
-        alias = next(
-            (
-                item for item in aliases
-                if compact.startswith(item)
-            ),
-            None
+        parsed = parse_scene_media(
+            path, scene_id, pov
         )
 
-        if alias is None:
+        if not parsed:
             continue
 
-        remainder = compact[len(alias):]
+        category, number = parsed
+        found[category].append(
+            (number, path)
+        )
 
-        # Copertina del personaggio.
-        if remainder == person:
-            if ext in IMAGE_EXT:
-                result["cover"].append(path)
-            continue
+    result = {}
 
-        # Copertina generica.
-        # Non viene usata per il prologo di Ada.
-        if remainder == "":
-            if scene_id != "inizio" and ext in IMAGE_EXT:
-                result["cover"].append(path)
-            continue
-
-        # Media numerati del personaggio.
-        if remainder.startswith(person):
-            number = remainder[len(person):]
-
-            if number.isdigit():
-                if ext in VIDEO_EXT:
-                    result["videos"].append(path)
-                else:
-                    result["images"].append(path)
-            continue
-
-        # File numerati generici delle scene normali.
-        if scene_id != "inizio" and remainder.isdigit():
-            if ext in VIDEO_EXT:
-                result["videos"].append(path)
-            else:
-                result["images"].append(path)
-
-    for kind in result:
-        result[kind] = sorted(
-            result[kind],
-            key=lambda path: (
-                numbered_suffix(path.stem),
-                path.name.casefold()
+    for category, items in found.items():
+        items.sort(
+            key=lambda item: (
+                item[0],
+                item[1].name.casefold()
             )
         )
-
-    result["cover"].sort(
-        key=lambda path: (
-            0 if person in normalize(path.stem) else 1,
-            path.name.casefold()
-        )
-    )
+        result[category] = [
+            path for _, path in items
+        ]
 
     return result
 
 
-def media_expected(scene_id, pov):
-    """
-    Nomi di riferimento suggeriti.
-
-    I file numerati sono facoltativi:
-    l'assenza non impedisce la scena.
-    """
-    prefix = f"{scene_id}.{pov.lower()}"
-
-    return {
-        "cover": f"{prefix}.jpg",
-        "photo_example": f"{prefix}1.jpg",
-        "video_example": f"{prefix}1.mp4"
-    }
-
-
 def media_diagnostics(scene_id, pov, files):
-    expected = media_expected(scene_id, pov)
-
-    st.markdown("### Diagnostica media")
-
-    st.caption(
-        "La diagnostica mostra ciò che l'app "
-        "riconosce realmente nella cartella assets. "
-        "I file numerati sono facoltativi."
+    expected = expected_media_names(
+        scene_id, pov
     )
 
-    if files["cover"]:
+    st.markdown(
+        "#### File attesi per questa scena"
+    )
+
+    preferred_cover = files["cover"]
+    generic_cover = files["generic_cover"]
+
+    if preferred_cover:
         st.success(
             "Copertina trovata: "
-            + files["cover"][0].name
+            + preferred_cover[0].name
+        )
+    elif generic_cover:
+        st.success(
+            "Copertina generica trovata: "
+            + generic_cover[0].name
+        )
+        st.caption(
+            "Copertina specifica facoltativa: "
+            + expected["cover"]
         )
     else:
         st.warning(
-            "Copertina non trovata. "
-            "Nome suggerito: "
+            "Copertina mancante: "
             + expected["cover"]
         )
 
-    if files["images"]:
-        for path in files["images"]:
-            st.success(
-                "Fotografia trovata: " + path.name
-            )
-    else:
-        st.info(
-            "Nessuna fotografia numerata trovata. "
-            "Per aggiungerne una, usa ad esempio: "
-            + expected["photo_example"]
-        )
+    for category, label in (
+        ("images", "Fotografia"),
+        ("videos", "Video")
+    ):
+        found_names = {
+            normalized(path.stem)
+            for path in files[category]
+        }
 
-    if files["videos"]:
-        for path in files["videos"]:
-            st.success(
-                "Video trovato: " + path.name
+        for index, filename in enumerate(
+            expected[category], 1
+        ):
+            suffix = (
+                "jpg"
+                if category == "images"
+                else "mp4"
             )
-    else:
-        st.info(
-            "Nessun video numerato trovato. "
-            "Per aggiungerne uno, usa ad esempio: "
-            + expected["video_example"]
-        )
+
+            # Conta il numero progressivo trovato,
+            # indipendentemente dal separatore.
+            wanted = normalized(
+                media_prefix(scene_id, pov)
+                + str(index)
+            )
+
+            detected = [
+                path.name
+                for path in files[category]
+                if normalized(path.stem) == wanted
+            ]
+
+            if detected:
+                st.success(
+                    f"{label} {index}: "
+                    + ", ".join(detected)
+                )
+            else:
+                st.warning(
+                    f"{label} {index} mancante: "
+                    f"{filename}"
+                )
+
+        extra = [
+            path.name
+            for path in files[category]
+            if normalized(path.stem) not in {
+                normalized(
+                    media_prefix(scene_id, pov)
+                    + str(i)
+                )
+                for i in range(
+                    1,
+                    len(expected[category]) + 1
+                )
+            }
+        ]
+
+        if extra:
+            st.caption(
+                "Altri file trovati: "
+                + ", ".join(extra)
+            )
+
+    st.caption(
+        "I nomi mancanti sono indicazioni, "
+        "non file obbligatori. "
+        "Puoi usare anche numeri superiori."
+    )
 
     if scene_id == "inizio" and pov == "Ada":
-        st.markdown(
-            "**Regola dello studio del Professore**"
-        )
-
-        st.write(
-            "In questa scena vengono utilizzati "
-            "esclusivamente file con nomi che "
-            "cominciano per `inizio.ada`. "
-            "Il ritratto `Ada.jpg` non viene "
-            "utilizzato nella galleria del prologo."
+        st.info(
+            "Il prologo di Ada usa soltanto "
+            "file inizio.ada... relativi allo "
+            "studio del Professore. "
+            "Il ritratto Ada.jpg non fa parte "
+            "della galleria iniziale."
         )
 
     with st.expander(
-        "MOSTRA TUTTI I FILE RILEVATI IN ASSETS"
+        "ELENCO REALE DEI FILE IN ASSETS"
     ):
         if not ASSETS.exists():
             st.error(
-                "La cartella assets non esiste."
+                "Cartella assets non trovata."
             )
         else:
-            names = sorted(
-                [
-                    path.name
-                    for path in ASSETS.iterdir()
-                    if path.is_file()
-                ],
-                key=str.casefold
-            )
-
-            for name in names:
-                st.code(name, language=None)
+            for path in sorted(
+                ASSETS.iterdir(),
+                key=lambda p: p.name.casefold()
+            ):
+                if path.is_file():
+                    st.text(path.name)
 
 
-def display_media(scene, pov):
-    files = media_files(scene["id"], pov)
+def render_media(scene, pov):
+    files = media_files(
+        scene["id"], pov
+    )
 
-    # Ada: solo lo studio del Professore.
-    # Non viene usato Ada.jpg come copertina.
-    if files["cover"]:
+    covers = (
+        files["cover"]
+        or files["generic_cover"]
+    )
+
+    if covers:
         st.image(
-            str(files["cover"][0]),
+            str(covers[0]),
             use_container_width=True
         )
 
-    all_media = []
+    gallery = []
 
-    for path in files["images"]:
-        all_media.append(
-            (numbered_suffix(path.stem), "image", path)
-        )
+    for kind in ("images", "videos"):
+        for path in files[kind]:
+            parsed = parse_scene_media(
+                path,
+                scene["id"],
+                pov
+            )
+            if parsed:
+                gallery.append(
+                    (parsed[1], kind, path)
+                )
 
-    for path in files["videos"]:
-        all_media.append(
-            (numbered_suffix(path.stem), "video", path)
-        )
-
-    all_media.sort(
+    gallery.sort(
         key=lambda item: (
             item[0],
             item[2].name.casefold()
         )
     )
 
-    if all_media:
-        st.markdown(
-            '<div class="media-heading">'
-            'Fotografie e video della scena'
-            '</div>',
-            unsafe_allow_html=True
+    if gallery:
+        st.subheader(
+            "Fotografie e video della scena"
         )
 
-        for start in range(0, len(all_media), 2):
+        for start in range(0, len(gallery), 2):
             columns = st.columns(2)
 
-            for column, item in zip(
+            for column, entry in zip(
                 columns,
-                all_media[start:start + 2]
+                gallery[start:start + 2]
             ):
-                _, kind, path = item
+                _, kind, path = entry
 
                 with column:
                     try:
-                        if kind == "video":
+                        if kind == "videos":
                             st.video(str(path))
                         else:
                             st.image(
                                 str(path),
                                 use_container_width=True
                             )
-
                         st.caption(path.name)
 
                     except Exception as exc:
                         st.error(
-                            f"File trovato ma non visualizzabile: "
+                            "File trovato ma non "
+                            "visualizzabile: "
                             f"{path.name} — {exc}"
                         )
 
-    else:
-        st.info(
-            "Non sono stati trovati media numerati "
-            "per questa scena e questo personaggio."
-        )
-
     with st.expander(
-        "DIAGNOSTICA MEDIA — FILE TROVATI E NOMI ATTESI"
+        "DIAGNOSTICA MEDIA — FILE MANCANTI",
+        expanded=not bool(
+            covers or gallery
+        )
     ):
         media_diagnostics(
             scene["id"], pov, files
         )
 
 
-def intro_character_videos(pov):
-    if not ASSETS.exists():
-        return []
-
-    result = []
-
-    for path in ASSETS.iterdir():
-        if not path.is_file():
-            continue
-
-        if path.suffix.casefold() not in VIDEO_EXT:
-            continue
-
-        if re.fullmatch(
-            rf"{normalize(pov)}video\d+",
-            normalize(path.stem)
-        ):
-            result.append(path)
-
-    return sorted(
-        result,
-        key=lambda item: (
-            numbered_suffix(item.stem),
-            item.name.casefold()
-        )
-    )
-
-
 # ============================================================
-# FONTI NARRATIVE
+# FONTI
 # ============================================================
 
 def read_reference(path):
     try:
-        if path.suffix.casefold() in (".txt", ".md"):
+        if path.suffix.casefold() in (
+            ".txt", ".md"
+        ):
             return path.read_text(
                 encoding="utf-8",
                 errors="ignore"
@@ -1286,14 +1261,12 @@ def read_reference(path):
         if path.suffix.casefold() == ".pdf":
             from pypdf import PdfReader
             reader = PdfReader(str(path))
-
             return "\n".join(
                 page.extract_text() or ""
                 for page in reader.pages
             )
-
     except Exception:
-        return ""
+        pass
 
     return ""
 
@@ -1306,9 +1279,11 @@ def hotel_context():
     if root_file.exists():
         return read_reference(root_file)
 
-    if ASSETS.exists():
+    if ASSETS.is_dir():
         for path in ASSETS.iterdir():
-            if normalize(path.stem) == "contestoturinghotel":
+            if normalized(
+                path.stem
+            ) == "contestoturinghotel":
                 return read_reference(path)
 
     return ""
@@ -1317,12 +1292,14 @@ def hotel_context():
 def character_sources(pov):
     result = []
 
-    if not CHARACTERS_DIR.exists():
+    if not CHARACTERS_DIR.is_dir():
         return result
 
     total = 0
 
-    for path in sorted(CHARACTERS_DIR.iterdir()):
+    for path in sorted(
+        CHARACTERS_DIR.iterdir()
+    ):
         if not path.is_file():
             continue
 
@@ -1352,7 +1329,6 @@ def character_sources(pov):
                 "file": path.name,
                 "text": text
             })
-
             total += len(text)
 
     return result
@@ -1361,18 +1337,23 @@ def character_sources(pov):
 def writer_sources():
     result = []
 
-    if not ASSETS.exists():
+    if not ASSETS.is_dir():
         return result
 
-    for path in sorted(ASSETS.iterdir()):
+    for path in sorted(
+        ASSETS.iterdir()
+    ):
+        if not path.is_file():
+            continue
+
         if path.suffix.casefold() not in (
             ".txt", ".md", ".pdf"
         ):
             continue
 
-        if normalize(path.stem).startswith(
-            "libriagenti"
-        ):
+        if normalized(
+            path.stem
+        ).startswith("libriagenti"):
             text = read_reference(path)
 
             if text:
@@ -1385,7 +1366,7 @@ def writer_sources():
 
 
 # ============================================================
-# SCENE E MEMORIE
+# SCENE E MEMORIE INDIPENDENTI
 # ============================================================
 
 def scene_by_id(sid):
@@ -1404,7 +1385,10 @@ def scene_context(scene, pov):
     if scene["id"] == "inizio":
         return safe_dict(
             scene.get("intro_contexts")
-        ).get(pov, INTRO_CONTEXTS[pov])
+        ).get(
+            pov,
+            INTRO_CONTEXTS[pov]
+        )
 
     return scene.get(
         "approved_context", ""
@@ -1419,6 +1403,7 @@ def previous_memories(scene_id, pov):
             break
 
         scene = scene_by_id(sid)
+
         text = narrative_for(
             scene, pov
         ).get("approved", "")
@@ -1456,11 +1441,15 @@ def transcript(scene, pov):
         ""
     ]
 
-    for item in scene["messages"][pov]:
+    for item in safe_list(
+        scene["messages"][pov]
+    ):
         if not isinstance(item, dict):
             continue
 
-        speaker = str(item.get("speaker", "?"))
+        speaker = str(
+            item.get("speaker", "?")
+        )
 
         if item.get("kind") == "inner":
             speaker += " (pensiero)"
@@ -1475,24 +1464,22 @@ def transcript(scene, pov):
 
 
 # ============================================================
-# CREATORE DEL CONTESTO
+# CREATORE DELLA SCENA
 # ============================================================
 
 def create_context(scene):
     return ask_ai(
         """
-Sei il CREATORE DELLA SCENA.
+Sei il creatore della scena di Turing Hotel.
 
 Trasforma le indicazioni dell'autore
 in un contesto narrativo preciso.
 
-Definisci luogo, atmosfera,
-fatti, circostanze, oggetti
-e persone presenti.
+Descrivi luogo, atmosfera, fatti,
+circostanze, persone e oggetti.
 
 Non decidere i pensieri di Noa o Ada.
-
-Non inventare svolte importanti.
+Non inventare svolte fondamentali.
 
 Restituisci soltanto il contesto.
 """,
@@ -1509,16 +1496,16 @@ Restituisci soltanto il contesto.
 def refine_context(scene):
     return ask_ai(
         """
-Sei lo SCRITTORE del Turing Hotel.
+Sei lo scrittore di Turing Hotel.
 
 Rendi il contesto più efficace,
 preciso, evocativo e narrativo.
 
 Non cambiare i fatti.
+Non inventare eventi.
 
-Usa le fonti letterarie
-come riferimenti di tecnica,
-senza copiarle.
+Usa le fonti letterarie come riferimenti
+di tecnica senza copiarle.
 
 Restituisci soltanto il contesto.
 """,
@@ -1534,20 +1521,17 @@ Restituisci soltanto il contesto.
 def ask_advisor(scene):
     return ask_ai(
         """
-Sei il CONSULENTE NARRATIVO.
+Sei il consulente narrativo di Turing Hotel.
 
 Parli con l'autore.
+Individua problemi, opportunità,
+alternative e rischi di coerenza.
 
-Individua problemi di coerenza,
-opportunità narrative e alternative.
-
-Se proponi più soluzioni,
-indica sempre quale preferisci
-e motiva la scelta.
+Se proponi più alternative,
+indica quale preferisci e perché.
 
 Non decidere al posto dell'autore.
-Non modificare autonomamente i testi.
-
+Non modificare nulla autonomamente.
 Rispondi in italiano.
 """,
         {
@@ -1567,11 +1551,10 @@ Rispondi in italiano.
 def character_instructions(pov, mode):
     agent = state["agents"][pov]
 
-    instructions = f"""
-Sei {pov}, personaggio del romanzo Turing Hotel.
+    result = f"""
+Sei {pov}, personaggio di Turing Hotel.
 
 Non sei un assistente.
-
 Non interpreti altri personaggi.
 
 MONDO:
@@ -1583,33 +1566,28 @@ IDENTITÀ:
 MEMORIA PERSONALE:
 {agent["memory"]}
 
-Ricordi soltanto le tue scene precedenti
-approvate dall'autore.
+Ricordi le tue scene precedenti
+solo se approvate dall'autore.
 
-Non conosci i pensieri privati
-dell'altro personaggio.
+Non conosci i pensieri privati altrui.
+Distingui fatti, sospetti e intuizioni.
 
-Distingui fatti, intuizioni e sospetti.
-
-Reagisci in modo autonomo e coerente.
-
+Reagisci autonomamente e coerentemente.
 Rispondi in italiano.
 """
 
     if mode == "inner":
-        instructions += """
-La risposta è un pensiero interiore.
-
-Non scrivere dialoghi esterni.
+        result += """
+Scrivi un pensiero interiore.
+Non creare dialoghi esterni.
 """
     else:
-        instructions += """
-La risposta è pronunciata ad alta voce.
-
-Scrivi soltanto la tua battuta.
+        result += """
+Scrivi soltanto la tua battuta
+pronunciata ad alta voce.
 """
 
-    return instructions
+    return result
 
 
 def answer_character(scene, pov, mode):
@@ -1620,29 +1598,25 @@ def answer_character(scene, pov, mode):
     if scene["id"] == "inizio":
         if pov == "Noa":
             instructions += """
-Cammini lungo il viale del Turing Hotel.
-Sei sola con i tuoi pensieri.
-
-Non anticipare l'incontro con Ada
-senza una progressione narrativa.
+Percorri il viale verso il Turing Hotel.
+La scena è un monologo interiore.
+Non anticipare l'incontro con Ada.
 """
         else:
             instructions += """
-Ti trovi nello studio del professor Elia,
-tuo padre.
-
-Dialoghi con lui.
+Ti trovi nello studio del Professore.
+Rispondi alle parole di tuo padre Elia.
 Non inventare le sue battute.
-
-La scena termina con l'arrivo di Noa
-alla reception.
+Non anticipare l'arrivo di Noa.
 """
 
     return ask_ai(
         instructions,
         {
             "SCENA": scene["title"],
-            "CONTESTO": scene_context(scene, pov),
+            "CONTESTO": scene_context(
+                scene, pov
+            ),
             "CANONE": hotel_context(),
             "FONTI": character_sources(pov),
             "RICORDI": previous_memories(
@@ -1655,40 +1629,118 @@ alla reception.
 
 
 # ============================================================
-# GO ALONE
+# GO ALONE, COMPRESI I DUE PROLOGHI
 # ============================================================
 
-def go_alone(scene):
-    if scene["id"] == "inizio":
-        return (
-            "GO ALONE non è disponibile "
-            "nel prologo."
-        )
+def go_alone(scene, pov):
+    sid = scene["id"]
+    generated = []
 
-    for speaker in ["Ada", "Noa", "Ada", "Noa"]:
-        answer = ask_ai(
-            character_instructions(
-                speaker, "external"
-            )
-            + """
-MODALITÀ GO ALONE.
+    if sid == "inizio" and pov == "Noa":
+        speakers = ["Noa", "Noa"]
 
-Scrivi una sola battuta spontanea
-nel dialogo con l'altro personaggio.
+    elif sid == "inizio" and pov == "Ada":
+        speakers = [
+            "Professore", "Ada",
+            "Professore", "Ada"
+        ]
 
-Non decidere le battute altrui.
-Non introdurre eventi irreversibili.
-""",
-            {
+    else:
+        speakers = [
+            "Ada", "Noa", "Ada", "Noa"
+        ]
+
+    temporary_messages = copy.deepcopy(
+        scene["messages"][pov]
+    )
+
+    temporary_shared = copy.deepcopy(
+        scene["shared_dialogue"]
+    )
+
+    for speaker in speakers:
+        if speaker == "Professore":
+            instructions = """
+Sei il professor Elia nello studio
+del Turing Hotel.
+
+Dialoghi con tua figlia Ada.
+
+Rispetta rigorosamente il canone,
+le battute precedenti e i limiti
+della scena.
+
+Non inventare rivelazioni decisive.
+Non oltrepassare l'arrivo di Noa
+alla reception.
+
+Scrivi una sola battuta parlata.
+"""
+            payload = {
                 "SCENA": scene["title"],
+                "CANONE": hotel_context(),
+                "CONTESTO": scene_context(
+                    scene, "Ada"
+                ),
+                "DIALOGO": temporary_messages,
+                "MEMORIA_DEL_PROFESSORE":
+                    "Usa soltanto i fatti canonici "
+                    "e la conversazione corrente."
+            }
+
+        else:
+            mode = (
+                "inner"
+                if sid == "inizio" and pov == "Noa"
+                else "external"
+            )
+
+            instructions = character_instructions(
+                speaker, mode
+            )
+
+            if sid == "inizio" and pov == "Noa":
+                instructions += """
+Sei ancora sul viale.
+Sviluppa un nuovo segmento
+del monologo interiore.
+Non oltrepassare l'incontro con Ada.
+"""
+            elif sid == "inizio":
+                instructions += """
+Sei Ada nello studio del Professore.
+Rispondi alla conversazione
+senza anticipare l'arrivo di Noa.
+"""
+            else:
+                instructions += """
+Modalità GO ALONE.
+Produci una sola battuta.
+Non interpretare l'altro personaggio.
+Non inventare eventi irreversibili.
+"""
+
+            payload = {
+                "SCENA": scene["title"],
+                "CANONE": hotel_context(),
                 "CONTESTO": scene_context(
                     scene, speaker
                 ),
                 "RICORDI": previous_memories(
-                    scene["id"], speaker
+                    sid, speaker
                 ),
-                "DIALOGO": scene["shared_dialogue"]
+                "FONTI": character_sources(
+                    speaker
+                ),
+                "DIALOGO": (
+                    temporary_messages
+                    if sid == "inizio"
+                    else temporary_shared
+                )
             }
+
+        answer = ask_ai(
+            instructions, payload
         )
 
         if ai_failed(answer):
@@ -1697,23 +1749,40 @@ Non introdurre eventi irreversibili.
         turn = {
             "speaker": speaker,
             "text": answer,
-            "kind": "external",
+            "kind": (
+                "inner"
+                if sid == "inizio" and pov == "Noa"
+                else "external"
+            ),
             "role": "response",
             "origin": "go_alone"
         }
 
-        def change():
-            scene["shared_dialogue"].append(
-                copy.deepcopy(turn)
+        generated.append(turn)
+        temporary_messages.append(
+            copy.deepcopy(turn)
+        )
+        temporary_shared.append(
+            copy.deepcopy(turn)
+        )
+
+    def change():
+        if sid == "inizio":
+            scene["messages"][pov].extend(
+                copy.deepcopy(generated)
+            )
+        else:
+            scene["shared_dialogue"].extend(
+                copy.deepcopy(generated)
             )
 
-            for pov in CHARACTERS:
-                scene["messages"][pov].append(
-                    copy.deepcopy(turn)
+            for person in CHARACTERS:
+                scene["messages"][person].extend(
+                    copy.deepcopy(generated)
                 )
 
-        if not commit_change(change):
-            return "Salvataggio GO ALONE fallito."
+    if not commit_change(change):
+        return "Salvataggio GO ALONE fallito."
 
     return ""
 
@@ -1724,12 +1793,12 @@ Non introdurre eventi irreversibili.
 
 def write_narrative(scene, pov, version, feedback):
     style = (
-        "Essenziale, concreta, sobria, "
-        "con dialoghi e sottotesto."
+        "Essenziale, precisa, sobria, "
+        "con gesti, dialoghi e sottotesto."
         if version == "A"
         else
-        "Introspettiva, sensoriale, "
-        "evocativa, emotiva ma controllata."
+        "Introspettiva, sensoriale, evocativa, "
+        "emotiva ma controllata."
     )
 
     special = ""
@@ -1738,58 +1807,58 @@ def write_narrative(scene, pov, version, feedback):
         if pov == "Noa":
             special = (
                 "Monologo di Noa lungo il viale. "
-                "Termina con l'incontro con Ada. "
-                "Non proseguire oltre."
+                "Termina con l'incontro con Ada."
             )
         else:
             special = (
-                "Dialogo fra Ada e il Professore "
-                "nello studio. Termina con l'arrivo "
-                "di Noa alla reception."
+                "Dialogo di Ada col Professore "
+                "nel suo studio. Termina con "
+                "l'arrivo di Noa alla reception."
             )
 
     return ask_ai(
         f"""
-Sei lo SCRITTORE LETTERARIO di Turing Hotel.
+Sei lo scrittore letterario di Turing Hotel.
 
 Scrivi un racconto compiuto.
 
-NARRATORE: {pov}.
-PRIMA PERSONA SINGOLARE.
-TEMPO PRESENTE.
+NARRATORE: {pov}
+PRIMA PERSONA SINGOLARE
+TEMPO PRESENTE
 
 Non scrivere un riassunto.
+Trasforma gli scambi in letteratura.
+Conserva fatti e dialoghi significativi.
 
-Trasforma la trascrizione in narrativa.
-
-Conserva i fatti significativi.
 Non inventare svolte fondamentali.
-
 Non attribuire al narratore
-informazioni che non conosce.
+conoscenze che non possiede.
 
 STILE:
 {style}
 
-VINCOLO:
+VINCOLO SPECIFICO:
 {special}
 
-Le fonti sono riferimenti tecnici,
-non testi da copiare.
+Usa le fonti come riferimento tecnico,
+non copiarle.
 
 Applica le correzioni dell'autore.
-
 Restituisci soltanto il racconto.
 """,
         {
             "SCENA": scene["title"],
             "PERSONAGGIO": pov,
-            "CONTESTO": scene_context(scene, pov),
-            "TRASCRIZIONE": transcript(scene, pov),
+            "CONTESTO": scene_context(
+                scene, pov
+            ),
+            "TRASCRIZIONE": transcript(
+                scene, pov
+            ),
             "RICORDI": previous_memories(
                 scene["id"], pov
             ),
-            "PROFILO": state["agents"][pov],
+            "IDENTITA": state["agents"][pov],
             "FONTI": character_sources(pov),
             "LIBRIAGENTI": writer_sources(),
             "CORREZIONI": feedback
@@ -1802,31 +1871,31 @@ Restituisci soltanto il racconto.
 # ============================================================
 
 def literary_critic(scene, pov):
-    record = narrative_for(scene, pov)
+    record = narrative_for(
+        scene, pov
+    )
 
     response = ask_ai(
         """
-Sei il CRITICO LETTERARIO del Turing Hotel.
+Sei il critico letterario di Turing Hotel.
 
 Confronta le versioni A e B.
-
 Devi esprimere una preferenza motivata.
 
 Valuta:
 - qualità letteraria;
-- coerenza;
-- voce narrativa;
+- coerenza psicologica;
+- voce;
 - fedeltà agli eventi;
-- efficacia drammatica;
+- efficacia;
 - continuità.
 
-Indica riserve e condizioni nelle quali
-sceglieresti l'altra versione.
+Indica riserve e quando sceglieresti
+l'altra versione.
 
 Non approvare autonomamente.
 
-Restituisci soltanto JSON valido:
-
+Restituisci SOLO JSON valido:
 {
  "preferenza": "A",
  "motivazione": "...",
@@ -1840,27 +1909,29 @@ Restituisci soltanto JSON valido:
             "PERSONAGGIO": pov,
             "VERSIONE_A": record["A"],
             "VERSIONE_B": record["B"],
+            "TRASCRIZIONE": transcript(
+                scene, pov
+            ),
             "RICORDI": previous_memories(
                 scene["id"], pov
-            ),
-            "TRASCRIZIONE": transcript(scene, pov)
+            )
         }
     )
 
     if ai_failed(response):
         return None, response
 
-    parsed = parse_json_answer(response)
+    parsed = json_from_ai(response)
 
     if not isinstance(parsed, dict):
-        return None, "Risposta del critico non valida."
+        return None, "Giudizio critico non valido."
 
     winner = str(
         parsed.get("preferenza", "")
     ).upper()
 
     if winner not in ("A", "B"):
-        return None, "Preferenza mancante."
+        return None, "Preferenza A/B mancante."
 
     review = (
         f"**Preferisco la versione {winner}.**\n\n"
@@ -1868,11 +1939,11 @@ Restituisci soltanto JSON valido:
         f"**Riserve:** {parsed.get('riserve', '')}\n\n"
         f"**Quando sceglierei l'altra:** "
         f"{parsed.get('alternativa', '')}\n\n"
-        f"**Pronta per l'approvazione:** "
+        f"**Pronta per approvazione:** "
         + (
             "Sì"
             if parsed.get("pronta") is True
-            else "È consigliata una revisione"
+            else "Consiglio una revisione"
         )
     )
 
@@ -1880,18 +1951,18 @@ Restituisci soltanto JSON valido:
 
 
 # ============================================================
-# ESPORTAZIONI
+# ESPORTAZIONE WORD, TXT, MARKDOWN
 # ============================================================
 
-def create_docx(title, content):
-    doc = Document()
-    doc.add_heading(title, 0)
+def create_docx(title, text):
+    document = Document()
+    document.add_heading(title, 0)
 
-    for paragraph in content.split("\n"):
-        doc.add_paragraph(paragraph)
+    for paragraph in text.split("\n"):
+        document.add_paragraph(paragraph)
 
     buffer = BytesIO()
-    doc.save(buffer)
+    document.save(buffer)
     return buffer.getvalue()
 
 
@@ -1899,7 +1970,7 @@ def download_text(scene, pov, text, label):
     if not text.strip():
         return
 
-    filename = (
+    base = (
         f"{scene['id']}_{pov.lower()}_{label}"
     )
 
@@ -1909,9 +1980,9 @@ def download_text(scene, pov, text, label):
         st.download_button(
             "TXT",
             data=text.encode("utf-8"),
-            file_name=filename + ".txt",
+            file_name=base + ".txt",
             mime="text/plain",
-            key="txt_" + filename,
+            key="txt_" + base,
             use_container_width=True
         )
 
@@ -1919,9 +1990,9 @@ def download_text(scene, pov, text, label):
         st.download_button(
             "MARKDOWN",
             data=text.encode("utf-8"),
-            file_name=filename + ".md",
+            file_name=base + ".md",
             mime="text/markdown",
-            key="md_" + filename,
+            key="md_" + base,
             use_container_width=True
         )
 
@@ -1931,40 +2002,41 @@ def download_text(scene, pov, text, label):
             data=create_docx(
                 scene["title"], text
             ),
-            file_name=filename + ".docx",
+            file_name=base + ".docx",
             mime=(
                 "application/vnd.openxmlformats-officedocument."
                 "wordprocessingml.document"
             ),
-            key="doc_" + filename,
+            key="doc_" + base,
             use_container_width=True
         )
 
 
 # ============================================================
-# PROMPT NANO BANANA E VIDEO
+# OFFICINA VISIVA
 # ============================================================
 
 def generate_visuals(scene, pov, count):
-    record = narrative_for(scene, pov)
+    record = narrative_for(
+        scene, pov
+    )
 
     if not record["approved"].strip():
-        return None, "Manca il testo approvato."
+        return None, "Manca il racconto approvato."
 
     response = ask_ai(
         f"""
-Sei il DIRETTORE DELLA FOTOGRAFIA
+Sei il direttore della fotografia
 di Turing Hotel.
 
-Crea {count} inquadrature cinematografiche
-a partire esclusivamente dalla scena
-letteraria APPROVATA.
+Parti ESCLUSIVAMENTE dal testo approvato.
 
-Non introdurre eventi nuovi.
+Genera {count} inquadrature coerenti.
 
-Mantieni una bibbia visiva coerente.
+Non inventare eventi.
 
-Per ogni inquadratura crea:
+Crea una bibbia visiva e per ogni
+inquadratura prepara:
 - titolo;
 - momento narrativo;
 - prompt Nano Banana;
@@ -1972,11 +2044,7 @@ Per ogni inquadratura crea:
 - continuità;
 - riferimenti.
 
-Non trasformare automaticamente
-pensieri astratti in azioni inventate.
-
-Restituisci soltanto JSON valido:
-
+Restituisci SOLO JSON valido:
 {{
  "bible": "...",
  "shots": [
@@ -1996,9 +2064,12 @@ Restituisci soltanto JSON valido:
             "PERSONAGGIO": pov,
             "TESTO_APPROVATO": record["approved"],
             "CANONE": hotel_context(),
-            "FOTO_RIFERIMENTO": [
-                "assets/Noa.jpg",
-                "assets/Ada.jpg"
+            "MEDIA": [
+                path.name
+                for kind, paths in media_files(
+                    scene["id"], pov
+                ).items()
+                for path in paths
             ]
         }
     )
@@ -2006,10 +2077,10 @@ Restituisci soltanto JSON valido:
     if ai_failed(response):
         return None, response
 
-    parsed = parse_json_answer(response)
+    parsed = json_from_ai(response)
 
     if not isinstance(parsed, dict):
-        return None, "Risposta JSON non valida."
+        return None, "JSON dei prompt non valido."
 
     if not isinstance(parsed.get("bible"), str):
         return None, "Bibbia visiva mancante."
@@ -2032,11 +2103,11 @@ def visual_text(visual):
         ""
     ]
 
-    for index, shot in enumerate(
+    for i, shot in enumerate(
         visual.get("prompts", []), 1
     ):
         lines.extend([
-            f"INQUADRATURA {index}",
+            f"INQUADRATURA {i}",
             str(shot.get("title", "")),
             "",
             "MOMENTO",
@@ -2062,15 +2133,16 @@ def visual_text(visual):
 
 
 def render_visual_workshop(scene, pov):
-    record = narrative_for(scene, pov)
+    record = narrative_for(
+        scene, pov
+    )
 
     st.markdown("---")
     st.subheader("Officina visiva")
 
     if not record["approved"].strip():
         st.info(
-            "Approva il racconto prima di "
-            "generare i prompt visivi."
+            "Approva prima il racconto."
         )
         return
 
@@ -2087,7 +2159,7 @@ def render_visual_workshop(scene, pov):
         use_container_width=True
     ):
         with st.spinner(
-            "Sto progettando la sequenza visiva..."
+            "Genero la sequenza visiva..."
         ):
             result, error = generate_visuals(
                 scene, pov, count
@@ -2095,7 +2167,6 @@ def render_visual_workshop(scene, pov):
 
         if error:
             st.error(error)
-
         else:
             def change():
                 record["visual"] = {
@@ -2122,8 +2193,8 @@ def render_visual_workshop(scene, pov):
         record.get("approved_at")
     ):
         st.warning(
-            "I prompt appartengono a una "
-            "versione precedente del racconto."
+            "I prompt si riferiscono "
+            "a una versione precedente."
         )
         return
 
@@ -2131,36 +2202,26 @@ def render_visual_workshop(scene, pov):
         "BIBBIA VISIVA",
         expanded=True
     ):
-        st.write(visual.get("bible", ""))
+        st.write(
+            visual.get("bible", "")
+        )
 
-    for index, shot in enumerate(prompts, 1):
+    for i, shot in enumerate(prompts, 1):
         with st.expander(
-            f"{index:02d} — {shot.get('title', '')}"
+            f"{i:02d} — {shot.get('title', '')}"
         ):
-            st.markdown("**Momento narrativo**")
-            st.write(shot.get("moment", ""))
-
-            st.markdown("**Nano Banana**")
-            st.code(
-                shot.get("image_prompt", ""),
-                language=None
-            )
-
-            st.markdown("**Video**")
-            st.code(
-                shot.get("video_prompt", ""),
-                language=None
-            )
-
-            st.markdown("**Continuità**")
-            st.write(shot.get("continuity", ""))
-
-            st.markdown("**Riferimenti**")
-            st.write(shot.get("reference", ""))
+            for label, key in (
+                ("Momento", "moment"),
+                ("Nano Banana", "image_prompt"),
+                ("Video", "video_prompt"),
+                ("Continuità", "continuity"),
+                ("Riferimenti", "reference")
+            ):
+                st.markdown(f"**{label}**")
+                st.write(shot.get(key, ""))
 
     download_text(
-        scene,
-        pov,
+        scene, pov,
         visual_text(visual),
         "prompt_visivi"
     )
@@ -2175,23 +2236,21 @@ def render_intro_editor(scene, pov):
 
     if pov == "Noa":
         st.info(
-            "Monologo lungo il viale verso "
-            "il Turing Hotel. "
-            "La scena termina con l'incontro con Ada."
+            "Monologo lungo il viale. "
+            "Termina con l'incontro con Ada."
         )
-
     else:
         st.info(
-            "Dialogo nello studio del Professore. "
-            "La scena termina quando Noa arriva "
+            "Dialogo Ada–Professore nello studio. "
+            "Termina quando Noa arriva "
             "alla reception."
         )
 
     edited = st.text_area(
-        "Contesto iniziale modificabile",
+        "Contesto iniziale",
         value=scene_context(scene, pov),
         height=180,
-        key=f"intro_text_{pov}"
+        key=f"intro_{pov}"
     )
 
     if st.button(
@@ -2205,21 +2264,21 @@ def render_intro_editor(scene, pov):
             )[pov] = edited
 
         if commit_change(change):
-            st.success(
-                "Contesto iniziale salvato."
-            )
+            st.success("Contesto salvato.")
 
 
 # ============================================================
-# EDITOR CONTESTO
+# EDITOR DELLE ALTRE SCENE
 # ============================================================
 
 def render_context_editor(scene):
-    with st.expander("CREATORE DELLA SCENA"):
+    with st.expander(
+        "CREATORE DELLA SCENA"
+    ):
         notes = st.text_area(
             "Indicazioni dell'autore",
             value=scene["author_context"],
-            height=110,
+            height=130,
             key=f"notes_{scene['id']}"
         )
 
@@ -2232,7 +2291,9 @@ def render_context_editor(scene):
                     author_context=notes
                 )
             ):
-                st.success("Indicazioni salvate.")
+                st.success(
+                    "Indicazioni salvate."
+                )
 
         if st.button(
             "CREA CONTESTO",
@@ -2242,15 +2303,14 @@ def render_context_editor(scene):
             temporary = copy.deepcopy(scene)
             temporary["author_context"] = notes
 
-            result = create_context(temporary)
+            answer = create_context(temporary)
 
-            if ai_failed(result):
-                st.error(result)
-
+            if ai_failed(answer):
+                st.error(answer)
             elif commit_change(
                 lambda: scene.update(
                     author_context=notes,
-                    story_draft=result
+                    story_draft=answer
                 )
             ):
                 st.rerun()
@@ -2272,15 +2332,14 @@ def render_context_editor(scene):
                 temporary = copy.deepcopy(scene)
                 temporary["story_feedback"] = feedback
 
-                result = create_context(temporary)
+                answer = create_context(temporary)
 
-                if ai_failed(result):
-                    st.error(result)
-
+                if ai_failed(answer):
+                    st.error(answer)
                 elif commit_change(
                     lambda: scene.update(
                         story_feedback=feedback,
-                        story_draft=result
+                        story_draft=answer
                     )
                 ):
                     st.rerun()
@@ -2290,14 +2349,13 @@ def render_context_editor(scene):
                 disabled=not bool(client),
                 key=f"refine_{scene['id']}"
             ):
-                result = refine_context(scene)
+                answer = refine_context(scene)
 
-                if ai_failed(result):
-                    st.error(result)
-
+                if ai_failed(answer):
+                    st.error(answer)
                 elif commit_change(
                     lambda: scene.update(
-                        story_draft=result
+                        story_draft=answer
                     )
                 ):
                     st.rerun()
@@ -2315,7 +2373,9 @@ def render_context_editor(scene):
 
         if scene["approved_context"]:
             st.markdown("**Contesto approvato**")
-            st.write(scene["approved_context"])
+            st.write(
+                scene["approved_context"]
+            )
 
 
 # ============================================================
@@ -2323,31 +2383,31 @@ def render_context_editor(scene):
 # ============================================================
 
 def render_advisor(scene):
-    with st.expander("CONSULENTE NARRATIVO"):
-        for message in scene["advisor_messages"]:
+    with st.expander(
+        "CONSULENTE NARRATIVO"
+    ):
+        for item in scene["advisor_messages"]:
             st.markdown(
                 "**Autore:**"
-                if message.get("role") == "user"
+                if item.get("role") == "user"
                 else "**Consulente:**"
             )
-            st.write(message.get("text", ""))
+            st.write(item.get("text", ""))
 
         with st.form(
-            f"advisor_form_{scene['id']}"
+            f"advisor_{scene['id']}"
         ):
             question = st.text_area(
                 "Domanda al consulente"
             )
-
-            submitted = st.form_submit_button(
+            send = st.form_submit_button(
                 "CHIEDI AL CONSULENTE"
             )
 
-        if submitted and question.strip():
+        if send and question.strip():
             messages = copy.deepcopy(
                 scene["advisor_messages"]
             )
-
             messages.append({
                 "role": "user",
                 "text": question
@@ -2360,7 +2420,6 @@ def render_advisor(scene):
 
             if ai_failed(answer):
                 st.error(answer)
-
             else:
                 messages.append({
                     "role": "assistant",
@@ -2376,19 +2435,21 @@ def render_advisor(scene):
 
 
 # ============================================================
-# CHAT
+# CHAT E GO ALONE
 # ============================================================
 
 def render_chat(scene, pov):
     st.markdown("---")
     st.subheader(f"Dialogo con {pov}")
 
-    with st.container(height=380, border=True):
+    with st.container(
+        height=380, border=True
+    ):
         messages = scene["messages"][pov]
 
         if not messages:
             st.caption(
-                "La conversazione non è ancora iniziata."
+                "Nessuna interazione ancora registrata."
             )
 
         for item in messages:
@@ -2400,68 +2461,73 @@ def render_chat(scene, pov):
             if scene["id"] == "stanza":
                 if pov == "Ada" and inner:
                     continue
-
                 if pov == "Noa" and not inner:
                     continue
 
             css = (
-                "thought-box" if inner else "chat-box"
+                "thought-box"
+                if inner
+                else "chat-box"
             )
 
             speaker = escape(
                 str(item.get("speaker", "?"))
             )
-
-            text = escape(
+            content = escape(
                 str(item.get("text", ""))
             )
 
             st.markdown(
                 f'<div class="{css}">'
                 f'<strong>{speaker}</strong>'
-                f'<div>{text}</div>'
+                f'<div>{content}</div>'
                 '</div>',
                 unsafe_allow_html=True
             )
 
-    if scene["id"] != "inizio":
-        if st.button(
-            "GO ALONE · 2 SCAMBI",
-            key=f"go_{scene['id']}_{pov}",
-            disabled=not bool(client),
-            use_container_width=True
-        ):
-            with st.spinner(
-                "Noa e Ada stanno conversando..."
-            ):
-                error = go_alone(scene)
-
-            if error:
-                st.error(error)
-            else:
-                st.rerun()
-
-    else:
-        st.caption(
-            "Nel prologo: monologo per Noa, "
-            "dialogo col Professore per Ada."
+    if scene["id"] == "inizio":
+        label = (
+            "GO ALONE — MONOLOGO DI NOA"
+            if pov == "Noa"
+            else
+            "GO ALONE — ADA E PROFESSORE"
         )
+    else:
+        label = "GO ALONE — NOA E ADA"
 
-    other = "Ada" if pov == "Noa" else "Noa"
+    if st.button(
+        label,
+        key=f"go_{scene['id']}_{pov}",
+        disabled=not bool(client),
+        use_container_width=True
+    ):
+        with st.spinner(
+            "La scena prosegue autonomamente..."
+        ):
+            error = go_alone(
+                scene, pov
+            )
+
+        if error:
+            st.error(error)
+        else:
+            st.rerun()
+
+    other = (
+        "Ada" if pov == "Noa" else "Noa"
+    )
 
     options = [
         other,
         pov,
         "Elia",
+        "Professore",
         "Luigi",
         "Adam",
         "Vittoria",
         "Riccardo",
         "Altro"
     ]
-
-    if scene["id"] == "stanza":
-        options = ["Noa"]
 
     if scene["id"] == "inizio":
         options = (
@@ -2478,23 +2544,24 @@ def render_chat(scene, pov):
             "Chi parla",
             options
         )
-
         message = st.text_area(
             "Messaggio",
             height=110
         )
-
-        submitted = st.form_submit_button(
+        send = st.form_submit_button(
             "INVIA",
             use_container_width=True
         )
 
-    if submitted and message.strip():
+    if send and message.strip():
         mode = (
             "inner"
             if speaker == pov
             else "external"
         )
+
+        if scene["id"] == "inizio" and pov == "Noa":
+            mode = "inner"
 
         turn = {
             "speaker": speaker,
@@ -2512,14 +2579,11 @@ def render_chat(scene, pov):
             f"{pov} sta rispondendo..."
         ):
             answer = answer_character(
-                temporary,
-                pov,
-                mode
+                temporary, pov, mode
             )
 
         if ai_failed(answer):
             st.error(answer)
-
         else:
             reply = {
                 "speaker": pov,
@@ -2540,8 +2604,8 @@ def render_chat(scene, pov):
         "GESTIONE CONVERSAZIONE"
     ):
         st.warning(
-            "La cancellazione della chat non elimina "
-            "le scene letterarie già approvate."
+            "Cancellare la chat non elimina "
+            "i racconti già approvati."
         )
 
         confirmed = st.checkbox(
@@ -2567,17 +2631,22 @@ def render_chat(scene, pov):
 # ============================================================
 
 def render_workshop(scene, pov):
-    record = narrative_for(scene, pov)
+    record = narrative_for(
+        scene, pov
+    )
 
     st.markdown("---")
     st.header("Officina del romanzo")
 
     st.caption(
         "Prima persona, tempo presente. "
-        "Soltanto il testo approvato diventa memoria."
+        "Soltanto il testo approvato "
+        "diventa memoria canonica."
     )
 
-    st.write(f"**Stato:** {record['status']}")
+    st.write(
+        f"**Stato:** {record['status']}"
+    )
 
     feedback = st.text_area(
         "Indicazioni per la scrittura",
@@ -2595,10 +2664,9 @@ def render_workshop(scene, pov):
             st.warning(
                 "Crea prima almeno un'interazione."
             )
-
         else:
             with st.spinner(
-                "Sto scrivendo le due versioni..."
+                "Scrittura delle due versioni..."
             ):
                 version_a = write_narrative(
                     scene, pov, "A", feedback
@@ -2614,10 +2682,8 @@ def render_workshop(scene, pov):
 
             if ai_failed(version_a):
                 st.error(version_a)
-
             elif ai_failed(version_b):
                 st.error(version_b)
-
             else:
                 def change():
                     record["A"] = version_a
@@ -2643,11 +2709,9 @@ def render_workshop(scene, pov):
                 + '</div>',
                 unsafe_allow_html=True
             )
-
             download_text(
                 scene, pov,
-                record.get("A", ""),
-                "A"
+                record.get("A", ""), "A"
             )
 
         with tab_b:
@@ -2657,11 +2721,9 @@ def render_workshop(scene, pov):
                 + '</div>',
                 unsafe_allow_html=True
             )
-
             download_text(
                 scene, pov,
-                record.get("B", ""),
-                "B"
+                record.get("B", ""), "B"
             )
 
         if st.button(
@@ -2671,7 +2733,7 @@ def render_workshop(scene, pov):
             use_container_width=True
         ):
             with st.spinner(
-                "Il critico sta valutando..."
+                "Valutazione del critico..."
             ):
                 winner, review = literary_critic(
                     scene, pov
@@ -2679,15 +2741,13 @@ def render_workshop(scene, pov):
 
             if winner is None:
                 st.error(review)
-
-            else:
-                if commit_change(
-                    lambda: record.update(
-                        recommended=winner,
-                        review=review
-                    )
-                ):
-                    st.rerun()
+            elif commit_change(
+                lambda: record.update(
+                    recommended=winner,
+                    review=review
+                )
+            ):
+                st.rerun()
 
     if record.get("review"):
         st.markdown(
@@ -2699,7 +2759,6 @@ def render_workshop(scene, pov):
 
     if record.get("A"):
         choices.append("Versione A")
-
     if record.get("B"):
         choices.append("Versione B")
 
@@ -2708,7 +2767,7 @@ def render_workshop(scene, pov):
         + str(record.get("recommended", ""))
     )
 
-    initial_index = (
+    index = (
         choices.index(preferred)
         if preferred in choices
         else 0
@@ -2717,7 +2776,7 @@ def render_workshop(scene, pov):
     choice = st.selectbox(
         "Versione da revisionare",
         choices,
-        index=initial_index,
+        index=index,
         key=f"choice_{scene['id']}_{pov}"
     )
 
@@ -2725,20 +2784,16 @@ def render_workshop(scene, pov):
 
     if choice == "Versione A":
         selected = record.get("A", "")
-
     elif choice == "Versione B":
         selected = record.get("B", "")
 
     editor_key = (
         f"editor_{scene['id']}_{pov}_"
-        f"{normalize(choice)}"
+        f"{normalized(choice)}"
     )
     source_key = editor_key + "_source"
 
-    if (
-        source_key not in st.session_state
-        or st.session_state[source_key] != selected
-    ):
+    if st.session_state.get(source_key) != selected:
         st.session_state[editor_key] = selected
         st.session_state[source_key] = selected
 
@@ -2753,15 +2808,12 @@ def render_workshop(scene, pov):
     with left:
         if st.button(
             "SALVA BOZZA SU GITHUB",
-            key=f"save_draft_{scene['id']}_{pov}",
+            key=f"draft_{scene['id']}_{pov}",
             use_container_width=True
         ):
             def change():
                 record["draft"] = edited
-
-                if not record.get(
-                    "approved", ""
-                ).strip():
+                if not record["approved"].strip():
                     record["status"] = "bozza"
 
             if commit_change(change):
@@ -2775,7 +2827,6 @@ def render_workshop(scene, pov):
         ):
             if not edited.strip():
                 st.warning("Il testo è vuoto.")
-
             else:
                 def change():
                     previous = record.get(
@@ -2797,7 +2848,6 @@ def render_workshop(scene, pov):
                     record["approved"] = edited
                     record["approved_at"] = now()
                     record["status"] = "approvata"
-
                     scene["diary"][pov] = edited
 
                     if previous != edited:
@@ -2814,7 +2864,6 @@ def render_workshop(scene, pov):
     st.markdown(
         "**Esporta il testo in revisione**"
     )
-
     download_text(
         scene, pov, edited, "revisione"
     )
@@ -2831,7 +2880,6 @@ def render_workshop(scene, pov):
                 + '</div>',
                 unsafe_allow_html=True
             )
-
             download_text(
                 scene, pov,
                 approved, "approvata"
@@ -2840,20 +2888,20 @@ def render_workshop(scene, pov):
             later = later_approved(
                 scene["id"], pov
             )
-
             if later:
                 st.warning(
-                    "Verifica la continuità con: "
+                    "Controlla la continuità con "
+                    "le scene successive: "
                     + ", ".join(later)
                 )
 
     with st.expander(
         "TRASCRIZIONE ORIGINALE"
     ):
-        original = transcript(scene, pov)
-
+        original = transcript(
+            scene, pov
+        )
         st.text(original)
-
         download_text(
             scene, pov,
             original, "trascrizione"
@@ -2870,8 +2918,8 @@ def render_saved_scenes():
     st.header("Archivio scene salvate")
 
     st.caption(
-        "Le scene approvate sono conservate "
-        "nell'archivio GitHub privato."
+        "I testi approvati sono conservati "
+        "nel repository GitHub privato."
     )
 
     total = 0
@@ -2880,8 +2928,12 @@ def render_saved_scenes():
         scene = scene_by_id(sid)
 
         for pov in CHARACTERS:
-            record = narrative_for(scene, pov)
-            approved = record.get("approved", "")
+            record = narrative_for(
+                scene, pov
+            )
+            approved = record.get(
+                "approved", ""
+            )
 
             if not approved.strip():
                 continue
@@ -2892,43 +2944,39 @@ def render_saved_scenes():
                 f"{scene['title']} — {pov}"
             ):
                 st.caption(
-                    "Data approvazione: "
-                    + str(
-                        record.get("approved_at", "")
-                    )
+                    "Approvata il "
+                    + str(record.get(
+                        "approved_at", ""
+                    ))
                 )
-
                 st.markdown(
                     '<div class="story-text">'
                     + escape(approved)
                     + '</div>',
                     unsafe_allow_html=True
                 )
-
                 download_text(
-                    scene,
-                    pov,
-                    approved,
-                    "archivio"
+                    scene, pov,
+                    approved, "archivio"
                 )
 
     if total == 0:
         st.info(
-            "Non ci sono ancora scene approvate."
+            "Non ci sono scene approvate."
         )
     else:
         st.success(
-            f"Scene archiviate: {total}"
+            f"Scene letterarie archiviate: {total}"
         )
 
 
 # ============================================================
-# RITORNO — DECISIONE FINALE
+# DECISIONE DEL RITORNO
 # ============================================================
 
 def render_return(scene, pov):
     st.markdown("---")
-    st.subheader("La decisione finale")
+    st.subheader("Decisione del ritorno")
 
     memories = previous_memories(
         scene["id"], pov
@@ -2942,26 +2990,23 @@ def render_return(scene, pov):
     ):
         if not memories:
             st.warning(
-                "Non ci sono ancora memorie "
-                "precedenti approvate."
+                "Non ci sono memorie precedenti "
+                "approvate."
             )
-
         else:
             answer = ask_ai(
                 character_instructions(
                     pov, "inner"
-                )
-                + """
-Questa è la scena finale.
-
-Prendi autonomamente una decisione.
-
-Usa soltanto le tue memorie approvate
-e il contesto attuale.
+                ) + """
+Prendi una decisione autonoma
+sulla base del contesto presente
+e delle tue memorie approvate.
 
 Non conoscere i pensieri altrui.
-
 Non cercare di compiacere l'autore.
+
+Questa non è necessariamente
+la fine dell'intero romanzo.
 """,
                 {
                     "SCENA": scene["title"],
@@ -2974,7 +3019,6 @@ Non cercare di compiacere l'autore.
 
             if ai_failed(answer):
                 st.error(answer)
-
             elif commit_change(
                 lambda: scene["decision"].update(
                     {pov: answer}
@@ -2987,20 +3031,19 @@ Non cercare di compiacere l'autore.
     ).get(pov, "")
 
     if decision:
-        st.markdown("### Decisione")
         st.write(decision)
 
 
 # ============================================================
-# PAGINA INGRESSO
+# PAGINA D'INGRESSO
 # ============================================================
 
 def page_entrance():
-    hotel_image = find_file("TuringHotel.jpg")
+    hotel = find_file("TuringHotel.jpg")
 
-    if hotel_image:
+    if hotel:
         st.image(
-            str(hotel_image),
+            str(hotel),
             use_container_width=True
         )
     else:
@@ -3013,11 +3056,11 @@ def page_entrance():
         unsafe_allow_html=True
     )
 
-    left, middle, right = st.columns(
+    _, center, _ = st.columns(
         [2, 1.5, 2]
     )
 
-    with middle:
+    with center:
         if st.button(
             "ENTRA AL TURING HOTEL",
             use_container_width=True
@@ -3033,12 +3076,11 @@ def page_entrance():
 def page_characters():
     st.title("Scegli una storia")
 
-    left, right = st.columns(2)
+    columns = st.columns(2)
 
-    for pov, column in [
-        ("Noa", left),
-        ("Ada", right)
-    ]:
+    for pov, column in zip(
+        CHARACTERS, columns
+    ):
         with column:
             portrait = find_file(
                 pov + ".jpg"
@@ -3055,9 +3097,6 @@ def page_characters():
                 )
 
             st.subheader(pov)
-
-            for video in intro_character_videos(pov):
-                st.video(str(video))
 
             if st.button(
                 f"ENTRA NELLA STORIA DI {pov.upper()}",
@@ -3089,15 +3128,12 @@ def page_story():
         )
     )
 
-    scene = scene_by_id(
-        SCENE_ORDER[index]
-    )
+    sid = SCENE_ORDER[index]
+    scene = scene_by_id(sid)
 
     st.sidebar.title(pov)
 
-    portrait = find_file(
-        pov + ".jpg"
-    )
+    portrait = find_file(pov + ".jpg")
 
     if portrait:
         st.sidebar.image(
@@ -3107,18 +3143,28 @@ def page_story():
 
     st.sidebar.markdown("---")
 
-    for i, sid in enumerate(SCENE_ORDER):
-        label = (
-            "● " if i == index else ""
-        ) + SCENE_TITLES[sid]
+    # Il selettore evita una sidebar
+    # con 29 pulsanti uno sotto l'altro.
+    selected = st.sidebar.selectbox(
+        "SCEGLI LA SCENA",
+        SCENE_ORDER,
+        index=index,
+        format_func=lambda item: (
+            f"{SCENE_ORDER.index(item) + 1:02d} · "
+            f"{SCENE_TITLES[item]}"
+        ),
+        key=f"scene_selector_{pov}_{index}"
+    )
 
-        if st.sidebar.button(
-            label,
-            key=f"nav_{pov}_{sid}",
-            use_container_width=True
-        ):
-            st.session_state.scene_index = i
-            st.rerun()
+    if selected != sid:
+        st.session_state.scene_index = (
+            SCENE_ORDER.index(selected)
+        )
+        st.rerun()
+
+    st.sidebar.caption(
+        f"Scena {index + 1} di {len(SCENE_ORDER)}"
+    )
 
     st.sidebar.markdown("---")
 
@@ -3133,33 +3179,28 @@ def page_story():
         "MEMORIA CANONICA"
     ):
         memories = previous_memories(
-            scene["id"], pov
+            sid, pov
         )
 
         if not memories:
             st.caption(
-                "Nessuna memoria precedente approvata."
+                "Nessuna memoria precedente."
             )
 
         for memory in memories:
             st.markdown(
                 f"**{memory['scene']}**"
             )
-
             st.caption(
-                memory["text"][:350]
+                memory["text"][:300]
             )
 
     with st.sidebar.expander(
         "ARCHIVIO GITHUB"
     ):
-        st.success(
-            "Archivio privato collegato"
-        )
-
         st.caption(
-            f"{GH_OWNER}/{GH_REPO} — "
-            f"ramo {GH_BRANCH}"
+            f"{GH_OWNER}/{GH_REPO} "
+            f"— {GH_BRANCH}"
         )
 
         if st.button(
@@ -3177,24 +3218,17 @@ def page_story():
 
         st.download_button(
             "SCARICA BACKUP COMPLETO",
-            backup.encode("utf-8"),
+            data=backup.encode("utf-8"),
             file_name="turing_hotel_backup.json",
             mime="application/json",
             use_container_width=True
         )
 
     with st.sidebar.expander(
-        "FILE DEL PERSONAGGIO"
+        "FONTI DEL PERSONAGGIO"
     ):
-        sources = character_sources(pov)
-
-        if not sources:
-            st.caption(
-                "Nessun file del personaggio trovato."
-            )
-
-        for source in sources:
-            st.write(source["file"])
+        for item in character_sources(pov):
+            st.write(item["file"])
 
     if st.sidebar.button(
         "CAMBIA PERSONAGGIO",
@@ -3222,16 +3256,15 @@ def page_story():
 
     st.markdown(
         '<div class="hotel-subtitle">'
-        f"STORIA DI {pov.upper()}"
+        f"STORIA DI {pov.upper()} "
+        f"· SCENA {index + 1}/{len(SCENE_ORDER)}"
         '</div>',
         unsafe_allow_html=True
     )
 
-    # Le immagini e i video appaiono subito
-    # dopo il titolo della scena.
-    display_media(scene, pov)
+    render_media(scene, pov)
 
-    if scene["id"] == "inizio":
+    if sid == "inizio":
         render_intro_editor(scene, pov)
     else:
         render_context_editor(scene)
@@ -3239,27 +3272,26 @@ def page_story():
     render_advisor(scene)
     render_chat(scene, pov)
 
-    if scene["id"] == "ritorno":
+    if sid == "ritorno":
         render_return(scene, pov)
 
     render_workshop(scene, pov)
 
     st.markdown("---")
 
-    previous, middle, following = st.columns(
+    left, _, right = st.columns(
         [1, 3, 1]
     )
 
-    with previous:
-        if index > 0:
-            if st.button(
-                "← PRECEDENTE",
-                use_container_width=True
-            ):
-                st.session_state.scene_index -= 1
-                st.rerun()
+    with left:
+        if index > 0 and st.button(
+            "← PRECEDENTE",
+            use_container_width=True
+        ):
+            st.session_state.scene_index -= 1
+            st.rerun()
 
-    with following:
+    with right:
         if index < len(SCENE_ORDER) - 1:
             if st.button(
                 "SUCCESSIVA →",
